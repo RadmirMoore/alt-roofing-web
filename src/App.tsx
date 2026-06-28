@@ -1,3 +1,4 @@
+import { ChatAgent } from "./components/ChatAgent";
 import { Footer } from "./components/Footer";
 import { Gallery } from "./components/Gallery";
 import { Header } from "./components/Header";
@@ -28,6 +29,7 @@ export default function App() {
       <QuoteForm />
       <Footer />
       <MobileBar />
+      <ChatAgent />
     </main>
   );
 }

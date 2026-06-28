@@ -56,6 +56,28 @@ npx netlify-cli deploy --prod --dir=dist
 
 Config: `src/config/site.ts`
 
+## 5. AI chat agent (optional but recommended)
+
+In **Site configuration → Environment variables**, add:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENAI_API_KEY` | Yes | OpenAI API key for the sales assistant |
+| `OPENAI_MODEL` | No | Default: `gpt-4o-mini` |
+| `RESEND_API_KEY` | No | Sends lead emails when the agent captures a customer |
+| `LEAD_NOTIFICATION_EMAIL` | No | Where leads go (default: info@altroofingsolutionsinc.com) |
+| `LEAD_FROM_EMAIL` | No | Sender for Resend (must be verified in Resend) |
+| `LEAD_WEBHOOK_URL` | No | Zapier/Make/CRM webhook instead of email |
+
+Redeploy after adding variables. See `.env.example` for a template.
+
+Local testing with functions:
+
+```bash
+cp .env.example .env   # add your OPENAI_API_KEY
+npm run dev:netlify    # runs Vite + Netlify functions together
+```
+
 ## Verify after deploy
 
 ```bash
