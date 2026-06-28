@@ -1,35 +1,14 @@
-import { ChatAgent } from "./components/ChatAgent";
-import { Footer } from "./components/Footer";
-import { Gallery } from "./components/Gallery";
-import { Header } from "./components/Header";
-import { Hero } from "./components/Hero";
-import { Manufacturers } from "./components/Manufacturers";
-import { Marquee } from "./components/Marquee";
-import { MobileBar } from "./components/MobileBar";
-import { PriceGuarantee } from "./components/PriceGuarantee";
-import { QuoteForm } from "./components/QuoteForm";
-import { Reviews } from "./components/Reviews";
-import { ServiceArea } from "./components/ServiceArea";
-import { Services } from "./components/Services";
-import { WhyAlt } from "./components/WhyAlt";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { HomePage } from "./pages/HomePage";
+import { AdminPage } from "./pages/AdminPage";
 
 export default function App() {
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-background pb-20 md:pb-0">
-      <Header />
-      <Hero />
-      <Marquee />
-      <PriceGuarantee />
-      <Services />
-      <Manufacturers />
-      <Reviews />
-      <Gallery />
-      <WhyAlt />
-      <ServiceArea />
-      <QuoteForm />
-      <Footer />
-      <MobileBar />
-      <ChatAgent />
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

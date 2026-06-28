@@ -71,6 +71,20 @@ In **Site configuration → Environment variables**, add:
 
 Redeploy after adding variables. See `.env.example` for a template.
 
+## 6. Analytics admin panel
+
+Open **https://altroofingsolutions.com/admin** and sign in with `ADMIN_PASSWORD`.
+
+The dashboard shows:
+
+- Unique visitors and sessions
+- Page/section views (hash navigation like `#services`, `#quote`)
+- Clicks on buttons, links, and form controls
+- Exit events with time on site and scroll depth
+- Full per-session event timelines
+
+Set `ADMIN_PASSWORD` in Netlify environment variables before first use.
+
 Local testing with functions:
 
 ```bash
