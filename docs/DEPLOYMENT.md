@@ -1,62 +1,58 @@
-# Deploy altroofingsolutions.com
+# Deploy altroofingsolutions.com (Netlify)
 
-The domain is registered at **Namecheap** (currently on a parking page). Follow these steps to point it at this site.
+**GitHub repo:** https://github.com/RadmirMoore/alt-roofing-web
 
-## 1. Deploy the site (Vercel — recommended)
+## 1. Connect repo in Netlify
 
-```bash
-npm install
-npm run build
-npx vercel --prod
-```
+1. Open [Netlify → Projects](https://app.netlify.com/teams/radmirmoore/projects)
+2. **Add new project** → **Import an existing project**
+3. Choose **GitHub** → authorize if needed → select **RadmirMoore/alt-roofing-web**
+4. Build settings (auto-detected from `netlify.toml`):
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
+5. Click **Deploy site**
 
-Or connect the GitHub repo in [vercel.com/new](https://vercel.com/new):
+## 2. Add custom domain
 
-- **Framework:** Vite
-- **Build command:** `npm run build`
-- **Output directory:** `dist`
+After the first deploy succeeds:
 
-## 2. Add the domain in Vercel
-
-1. Project → **Settings** → **Domains**
-2. Add `altroofingsolutions.com`
-3. Add `www.altroofingsolutions.com` (redirects to apex via `vercel.json`)
-
-Vercel will show the DNS records you need.
+1. **Site configuration → Domain management → Add a domain**
+2. Add `altroofingsolutions.com` and `www.altroofingsolutions.com`
+3. Netlify will show DNS records to set at Namecheap
 
 ## 3. Update DNS at Namecheap
 
-In **Namecheap → Domain List → altroofingsolutions.com → Advanced DNS**, remove the parking records and set:
+In **Namecheap → altroofingsolutions.com → Advanced DNS**, remove parking records and add what Netlify shows. Typical setup:
 
-| Type  | Host | Value                    |
-|-------|------|--------------------------|
-| **A** | `@`  | `76.76.21.21` (Vercel)   |
-| **CNAME** | `www` | `cname.vercel-dns.com.` |
+| Type | Host | Value |
+|------|------|-------|
+| **ALIAS/ANAME** or **A** | `@` | Netlify load balancer IP |
+| **CNAME** | `www` | `<your-site>.netlify.app` |
 
-> Use the exact values Vercel shows in the Domains panel — they may differ slightly.
+Delete old parking records:
 
-Delete old records:
-
-- `@` → `162.255.119.81` (parking)
+- `@` → `162.255.119.81`
 - `www` → `parkingpage.namecheap.com`
 
-DNS propagation usually takes 5–30 minutes (up to 48 hours).
+DNS propagation: 5–30 minutes (up to 48 hours).
 
 ## 4. Enable HTTPS
 
-Vercel issues a free SSL certificate automatically once DNS resolves.
+Netlify provisions a free Let's Encrypt certificate once DNS resolves.
 
-## Alternative: Netlify / Cloudflare Pages
+## CLI deploy (optional)
 
-- **Netlify:** use `public/_redirects` (already included) for SPA routing; point `@` A record to Netlify’s load balancer IP.
-- **Cloudflare Pages:** connect repo, set build `npm run build`, publish `dist`, then add custom domain in Cloudflare.
+```bash
+npx netlify-cli login
+npx netlify-cli init          # link to team radmirmoore
+npm run build
+npx netlify-cli deploy --prod --dir=dist
+```
 
 ## URLs in this project
 
-All SEO URLs use:
-
 - **Site:** https://altroofingsolutions.com
-- **Email:** info@altroofingsolutionsinc.com (unchanged — business inbox)
+- **Email:** info@altroofingsolutionsinc.com
 
 Config: `src/config/site.ts`
 
