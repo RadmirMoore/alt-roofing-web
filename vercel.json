@@ -1,0 +1,11 @@
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.altroofingsolutions.com" }],
+      "destination": "https://altroofingsolutions.com/:path*",
+      "permanent": true
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "https://www.altroofingsolutions.com/*"
+  to = "https://altroofingsolutions.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://altroofingsolutions.com/*"
+  to = "https://altroofingsolutions.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://www.altroofingsolutions.com/*"
+  to = "https://altroofingsolutions.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

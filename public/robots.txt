@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://altroofingsolutions.com/sitemap.xml

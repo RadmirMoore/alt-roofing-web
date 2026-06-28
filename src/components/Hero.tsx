@@ -1,0 +1,140 @@
+import { ArrowRight, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { motion } from "framer-motion";
+import { useState, type FormEvent } from "react";
+import { siteCopy } from "../data/content";
+import { FadeIn, inputClassName } from "./ui";
+
+export function Hero() {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [zip, setZip] = useState("");
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    window.location.hash = "quote";
+    const quoteSection = document.getElementById("quote");
+    quoteSection?.scrollIntoView({ behavior: "smooth" });
+    quoteSection?.querySelector<HTMLInputElement>("#quote-name")?.focus();
+  };
+
+  return (
+    <section id="top" className="relative w-full overflow-hidden pt-28 md:pt-36">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-5 pb-20 md:grid-cols-12 md:gap-12 md:px-8 md:pb-28">
+        <div className="md:col-span-7">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-5 flex items-center gap-3"
+          >
+            <span className="h-px w-10 bg-primary" />
+            <span className="text-[11px] font-medium uppercase tracking-[0.25em] text-foreground/60">
+              {siteCopy.hero.eyebrow}
+            </span>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="font-display text-balance text-[44px] font-bold leading-[0.95] tracking-tight sm:text-6xl md:text-[80px] lg:text-[96px]"
+          >
+            {siteCopy.hero.titleLead}{" "}
+            <span className="text-primary">{siteCopy.hero.titleAccent}</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-6 max-w-lg text-base text-foreground/65 md:text-lg"
+          >
+            {siteCopy.hero.subtitle}
+          </motion.p>
+
+          <motion.ul
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-foreground/70"
+          >
+            {siteCopy.hero.bullets.map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                {item === "Licensed & Insured" ? (
+                  <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
+                ) : item === "5-Star Rated" ? (
+                  <Star className="h-4 w-4 text-primary" aria-hidden="true" />
+                ) : (
+                  <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+                )}
+                {item}
+              </li>
+            ))}
+          </motion.ul>
+        </div>
+
+        <FadeIn className="relative md:col-span-5" delay={0.2}>
+          <form
+            onSubmit={handleSubmit}
+            className="relative mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.35)] md:max-w-none md:p-8"
+          >
+            <div className="mb-1 flex items-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-primary" />
+              <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-foreground/60">
+                {siteCopy.hero.formLabel}
+              </span>
+            </div>
+            <h2 className="font-display text-2xl font-bold leading-tight md:text-3xl">
+              {siteCopy.hero.formTitle}
+            </h2>
+            <p className="mt-1.5 text-sm text-foreground/60">
+              {siteCopy.hero.formSubtitle}
+            </p>
+
+            <div className="mt-5 space-y-3">
+              <input
+                type="text"
+                placeholder="Full name"
+                autoComplete="name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                className={inputClassName}
+              />
+              <input
+                type="tel"
+                placeholder="Phone number"
+                autoComplete="tel"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                className={inputClassName}
+              />
+              <input
+                type="text"
+                placeholder="ZIP code"
+                autoComplete="postal-code"
+                inputMode="numeric"
+                value={zip}
+                onChange={(event) => setZip(event.target.value)}
+                className={inputClassName}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="group mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:brightness-110 cobalt-glow"
+            >
+              Continue
+              <ArrowRight
+                className="h-4 w-4 transition group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
+            </button>
+            <p className="mt-3 text-center text-[11px] text-foreground/50">
+              {siteCopy.hero.formDisclaimer}
+            </p>
+          </form>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
