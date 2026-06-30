@@ -7,7 +7,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { PHONE, PHONE_HREF } from "../data/content";
 import { createMessage, sendChatMessage, type ChatMessage } from "../lib/chat";
 
@@ -23,6 +23,48 @@ const WELCOME_MESSAGE = createMessage(
   "Hi! I'm Alex from ALT Roofing Solutions. I can answer questions about repairs, replacements, inspections, and help you get a free estimate. What can I help you with today?",
 );
 
+function useMobileViewport(open: boolean) {
+  const [style, setStyle] = useState<CSSProperties>({});
+
+  useEffect(() => {
+    if (!open) {
+      setStyle({});
+      return;
+    }
+
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    if (!isMobile) {
+      setStyle({});
+      return;
+    }
+
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const update = () => {
+      setStyle({
+        top: `${viewport.offsetTop}px`,
+        left: `${viewport.offsetLeft}px`,
+        width: `${viewport.width}px`,
+        height: `${viewport.height}px`,
+      });
+    };
+
+    update();
+    viewport.addEventListener("resize", update);
+    viewport.addEventListener("scroll", update);
+    window.addEventListener("orientationchange", update);
+
+    return () => {
+      viewport.removeEventListener("resize", update);
+      viewport.removeEventListener("scroll", update);
+      window.removeEventListener("orientationchange", update);
+    };
+  }, [open]);
+
+  return style;
+}
+
 export function ChatAgent() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -31,6 +73,7 @@ export function ChatAgent() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const mobileViewportStyle = useMobileViewport(open);
 
   useEffect(() => {
     if (open && listRef.current) {
@@ -39,9 +82,13 @@ export function ChatAgent() {
   }, [messages, loading, open]);
 
   useEffect(() => {
-    if (open) {
-      inputRef.current?.focus();
-    }
+    if (!open) return;
+
+    document.body.classList.add("chat-open");
+
+    return () => {
+      document.body.classList.remove("chat-open");
+    };
   }, [open]);
 
   const sendMessage = async (text: string) => {
@@ -87,25 +134,41 @@ export function ChatAgent() {
     <>
       <AnimatePresence>
         {open ? (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            aria-label="Close chat backdrop"
+            className="chat-backdrop fixed inset-0 z-[65] md:hidden"
+            onClick={() => setOpen(false)}
+          />
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {open ? (
           <motion.div
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed right-4 bottom-36 z-[60] flex h-[min(560px,calc(100vh-10rem))] w-[min(400px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_-30px_rgba(0,0,0,0.55)] md:right-6 md:bottom-24"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            style={mobileViewportStyle}
+            className="fixed z-[70] box-border flex max-w-full flex-col overflow-hidden border border-border bg-card shadow-[0_30px_80px_-30px_rgba(0,0,0,0.55)] max-md:rounded-none max-md:border-x-0 max-md:border-t max-md:border-b-0 md:right-6 md:bottom-24 md:h-[min(560px,calc(100dvh-8rem))] md:w-[min(400px,calc(100vw-3rem))] md:rounded-2xl"
             role="dialog"
+            aria-modal="true"
             aria-label="Chat with ALT Roofing assistant"
           >
-            <div className="flex items-center justify-between border-b border-border bg-background/80 px-4 py-3 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary ring-1 ring-primary/20">
+            <div className="flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur-xl">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary ring-1 ring-primary/20">
                   <Sparkles className="h-4 w-4" aria-hidden="true" />
                 </span>
-                <div>
-                  <div className="font-display text-sm font-semibold">
+                <div className="min-w-0">
+                  <div className="truncate font-display text-sm font-semibold">
                     Alex · ALT Roofing
                   </div>
-                  <div className="text-[11px] text-foreground/55">
+                  <div className="truncate text-[11px] text-foreground/55">
                     {leadCaptured
                       ? "Lead sent — we'll call you today"
                       : "Free estimates · Same-day response"}
@@ -116,7 +179,7 @@ export function ChatAgent() {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close chat"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border transition hover:border-primary/40"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border transition hover:border-primary/40"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -124,7 +187,7 @@ export function ChatAgent() {
 
             <div
               ref={listRef}
-              className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
+              className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4"
             >
               {messages.map((message) => (
                 <div
@@ -132,7 +195,7 @@ export function ChatAgent() {
                   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                       message.role === "user"
                         ? "rounded-br-md bg-primary text-primary-foreground"
                         : "rounded-bl-md border border-border bg-background text-foreground/85"
@@ -157,23 +220,25 @@ export function ChatAgent() {
             </div>
 
             {!leadCaptured && messages.length <= 2 ? (
-              <div className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
-                {QUICK_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => void sendMessage(prompt)}
-                    className="rounded-full border border-border bg-background/70 px-3 py-1.5 text-left text-xs text-foreground/75 transition hover:border-primary/40 hover:text-foreground"
-                  >
-                    {prompt}
-                  </button>
-                ))}
+              <div className="shrink-0 border-t border-border px-4 py-3 max-md:max-h-28 max-md:overflow-y-auto">
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_PROMPTS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => void sendMessage(prompt)}
+                      className="max-w-full rounded-full border border-border bg-background/80 px-3 py-1.5 text-left text-xs text-foreground/75 transition hover:border-primary/40 hover:text-foreground"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : null}
 
             <form
               onSubmit={handleSubmit}
-              className="border-t border-border bg-background/80 p-3 backdrop-blur"
+              className="shrink-0 border-t border-border bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:pb-3"
             >
               <div className="flex items-end gap-2">
                 <textarea
@@ -189,7 +254,7 @@ export function ChatAgent() {
                   rows={1}
                   placeholder="Ask about your roof…"
                   disabled={loading}
-                  className="max-h-28 min-h-11 flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-sm outline-none transition placeholder:text-foreground/40 focus:border-primary disabled:opacity-60"
+                  className="max-h-24 min-h-11 flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-base outline-none transition placeholder:text-foreground/40 focus:border-primary disabled:opacity-60 md:text-sm"
                 />
                 <button
                   type="submit"
@@ -200,7 +265,7 @@ export function ChatAgent() {
                   <SendHorizontal className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
-              <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-foreground/45">
+              <div className="mt-2 hidden items-center justify-between gap-2 text-[11px] text-foreground/45 md:flex">
                 <span>Licensed & insured · Los Angeles</span>
                 <a
                   href={PHONE_HREF}
@@ -215,22 +280,17 @@ export function ChatAgent() {
         ) : null}
       </AnimatePresence>
 
-      <button
-        type="button"
-        onClick={() => setOpen((current) => !current)}
-        aria-expanded={open}
-        aria-label={open ? "Close chat assistant" : "Open chat assistant"}
-        className="fixed right-4 bottom-36 z-[60] inline-flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-[0_16px_40px_-12px_var(--color-accent-cobalt-glow)] transition hover:brightness-110 md:right-6 md:bottom-6 md:px-5 md:py-3.5 cobalt-glow"
-      >
-        {open ? (
-          <X className="h-5 w-5" aria-hidden="true" />
-        ) : (
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Open chat assistant"
+          className="fixed right-4 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-[60] inline-flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-[0_16px_40px_-12px_var(--color-accent-cobalt-glow)] transition hover:brightness-110 md:right-6 md:bottom-6 md:px-5 md:py-3.5 cobalt-glow"
+        >
           <MessageCircle className="h-5 w-5" aria-hidden="true" />
-        )}
-        <span className="hidden sm:inline">
-          {open ? "Close" : "Chat with us"}
-        </span>
-      </button>
+          <span className="hidden sm:inline">Chat with us</span>
+        </button>
+      ) : null}
     </>
   );
 }

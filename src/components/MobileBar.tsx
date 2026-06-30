@@ -3,7 +3,7 @@ import { PHONE_HREF } from "../data/content";
 
 export function MobileBar() {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 p-3 backdrop-blur-xl md:hidden">
+    <div className="mobile-bar-shell fixed inset-x-0 bottom-0 z-50 border-t border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] mobile-bar-blur md:hidden">
       <div className="grid grid-cols-2 gap-3">
         <a
           href={PHONE_HREF}
