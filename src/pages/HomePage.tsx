@@ -1,4 +1,4 @@
-import { MobileBlurEdges } from "../components/MobileBlurEdges";
+import { MobileTopBlur } from "../components/MobileBlurEdges";
 import { ChatAgent } from "../components/ChatAgent";
 import { Footer } from "../components/Footer";
 import { Gallery } from "../components/Gallery";
@@ -23,7 +23,7 @@ export function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-background pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
-      <MobileBlurEdges />
+      <MobileTopBlur />
       <Header />
       <Hero />
       <Marquee />
