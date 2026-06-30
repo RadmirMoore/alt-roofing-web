@@ -61,7 +61,7 @@ export const siteCopy = {
     label: "Recent Work",
     title: "Roofs we're proud of.",
     intro:
-      "Recent residential roof repair and replacement projects across Los Angeles and Southern California.",
+      "Real residential roof repair, replacement, and tile projects completed by ALT Roofing across Los Angeles and Southern California.",
   },
   whyAlt: {
     label: "Why ALT",
@@ -167,28 +167,52 @@ export const reviews = [
 
 export const galleryImages = [
   {
-    src: "/images/alt6.webp",
-    alt: "Architectural shingle dormer roof replacement in Los Angeles, CA",
+    src: "/images/gallery/gallery-01-aerial-charcoal-shingles.png",
+    alt: "Aerial view of completed charcoal architectural shingle roof replacement in Southern California",
   },
   {
-    src: "/images/alt1.webp",
-    alt: "Fresh asphalt shingle roof install on a Southern California home",
+    src: "/images/gallery/gallery-02-completed-home-front.png",
+    alt: "Completed grey shingle roof with brick chimney on a Los Angeles area home",
   },
   {
-    src: "/images/alt4.webp",
-    alt: "Hip roof with cupola on a hillside property in Los Angeles",
+    src: "/images/gallery/gallery-03-grey-shingles-skylights.png",
+    alt: "Grey asphalt shingle roof with skylights and ridge caps installed by ALT Roofing",
   },
   {
-    src: "/images/alt2.webp",
-    alt: "Hillside roof ridge installation with valley views in LA",
+    src: "/images/gallery/gallery-04-charcoal-shingle-hip-roof.png",
+    alt: "Charcoal architectural shingle hip roof with skylights and roof vents",
   },
   {
-    src: "/images/alt5.webp",
-    alt: "Full asphalt shingle roof replacement by ALT Roofing Solutions",
+    src: "/images/gallery/gallery-05-grey-shingle-slope.png",
+    alt: "Professional grey shingle roof installation on a residential slope",
   },
   {
-    src: "/images/alt3.webp",
-    alt: "Detailed shingle and flashing work on a residential roof",
+    src: "/images/gallery/gallery-06-shingle-ridge-vents.png",
+    alt: "Close-up of grey shingle roof with ridge caps and venting systems",
+  },
+  {
+    src: "/images/gallery/gallery-07-shingles-brick-chimney.png",
+    alt: "Grey shingle roof with red brick chimney and metal roof vent",
+  },
+  {
+    src: "/images/gallery/gallery-08-light-grey-shingles.png",
+    alt: "Light grey architectural shingle roof with clean flashing around vents",
+  },
+  {
+    src: "/images/gallery/gallery-09-proarmor-underlayment.png",
+    alt: "Owens Corning ProArmor synthetic underlayment installed before shingle placement",
+  },
+  {
+    src: "/images/gallery/gallery-10-owens-corning-proarmor.png",
+    alt: "Roof tear-off with Owens Corning ProArmor underlayment and staged shingles",
+  },
+  {
+    src: "/images/gallery/gallery-11-tile-installation.png",
+    alt: "Westlake Royal TileSeal HT underlayment and clay tile roof installation in progress",
+  },
+  {
+    src: "/images/gallery/gallery-12-tile-underlayment-battens.png",
+    alt: "Spanish tile roof project showing underlayment, battens, and finished tile sections",
   },
 ] as const;
 
