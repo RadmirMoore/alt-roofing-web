@@ -52,7 +52,7 @@ npx netlify-cli deploy --prod --dir=dist
 ## URLs in this project
 
 - **Site:** https://altroofingsolutions.com
-- **Email:** info@altroofingsolutionsinc.com
+- **Email:** info@altroofingsolutions.com
 
 Config: `src/config/site.ts`
 
@@ -65,7 +65,7 @@ In **Site configuration → Environment variables**, add:
 | `OPENAI_API_KEY` | Yes | OpenAI API key for the sales assistant |
 | `OPENAI_MODEL` | No | Default: `gpt-4o-mini` |
 | `RESEND_API_KEY` | No | Sends lead emails when the agent captures a customer |
-| `LEAD_NOTIFICATION_EMAIL` | No | Where leads go (default: info@altroofingsolutionsinc.com) |
+| `LEAD_NOTIFICATION_EMAIL` | No | Where leads go (default: info@altroofingsolutions.com) |
 | `LEAD_FROM_EMAIL` | No | Sender for Resend (must be verified in Resend) |
 | `LEAD_WEBHOOK_URL` | No | Zapier/Make/CRM webhook instead of email |
 

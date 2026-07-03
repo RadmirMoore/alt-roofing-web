@@ -14,8 +14,8 @@ import {
 
 export const PHONE = "(213) 415-6146";
 export const PHONE_HREF = "tel:+12134156146";
-export const EMAIL = "info@altroofingsolutionsinc.com";
-export const EMAIL_HREF = "mailto:info@altroofingsolutionsinc.com";
+export const EMAIL = "info@altroofingsolutions.com";
+export const EMAIL_HREF = "mailto:info@altroofingsolutions.com";
 
 export const siteCopy = {
   hero: {

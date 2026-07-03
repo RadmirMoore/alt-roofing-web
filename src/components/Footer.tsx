@@ -55,7 +55,7 @@ export function Footer() {
                   aria-hidden="true"
                 />
                 <span>
-                  Mon–Sat · 7:00a – 7:00p
+                  Mon–Sat · 8:00a – 5:00p
                   <br />
                   <span className="text-foreground/55">
                     Free inspections available
@@ -70,8 +70,8 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-border pt-8 text-sm text-foreground/50 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 ALT Roofing Solutions. All rights reserved.</p>
-          <p>Licensed & Insured · Los Angeles, CA</p>
+          <p>© 2026 ALT Roofing Solutions Inc. All rights reserved.</p>
+          <p>Licensed & Insured · Lic. #1154302 · Los Angeles, CA</p>
         </div>
       </div>
     </footer>

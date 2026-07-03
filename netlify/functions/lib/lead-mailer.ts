@@ -8,7 +8,7 @@ type ResendResponse = {
 export async function notifyLead(lead: LeadPayload): Promise<void> {
   const resendKey = process.env.RESEND_API_KEY;
   const notifyEmail =
-    process.env.LEAD_NOTIFICATION_EMAIL ?? "info@altroofingsolutionsinc.com";
+    process.env.LEAD_NOTIFICATION_EMAIL ?? "info@altroofingsolutions.com";
   const fromEmail =
     process.env.LEAD_FROM_EMAIL ?? "leads@altroofingsolutions.com";
 
