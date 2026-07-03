@@ -80,7 +80,13 @@ export default async (request: Request) => {
     const message =
       error instanceof Error ? error.message : "Unexpected server error";
     console.error("Lead function error:", message);
-    return json({ error: "Failed to submit lead. Please call (213) 415-6146." }, 500);
+    return json(
+      {
+        error: "Failed to submit lead. Please call (213) 415-6146.",
+        detail: message,
+      },
+      500,
+    );
   }
 };
 
