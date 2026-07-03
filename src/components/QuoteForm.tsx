@@ -15,14 +15,64 @@ import {
   SectionLabel,
   textareaClassName,
 } from "./ui";
+import { trackLead } from "../lib/analytics-tracker";
 
 export function QuoteForm() {
   const [submitted, setSubmitted] = useState(false);
   const [scheduleInspection, setScheduleInspection] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitted(true);
+    if (submitting) return;
+
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const payload = {
+      name: String(data.get("name") ?? "").trim(),
+      phone: String(data.get("phone") ?? "").trim(),
+      service: String(data.get("service") ?? "").trim(),
+      address: String(data.get("address") ?? "").trim(),
+      message: String(data.get("message") ?? "").trim(),
+      inspectionDate: String(data.get("inspection-date") ?? "").trim(),
+      inspectionTime: String(data.get("inspection-time") ?? "").trim(),
+      source: "quote form",
+    };
+
+    if (!payload.name || !payload.phone || !payload.service) {
+      setError("Please add your name, phone, and the service you need.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        throw new Error(body?.error ?? "Failed to submit. Please try again.");
+      }
+
+      trackLead("Quote form submitted");
+      setSubmitted(true);
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Something went wrong. Please call (213) 415-6146.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -40,6 +90,7 @@ export function QuoteForm() {
           <div className="mt-10 space-y-3">
             <a
               href={PHONE_HREF}
+              aria-label="Call ALT Roofing"
               className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition hover:border-primary/50"
             >
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -203,15 +254,23 @@ export function QuoteForm() {
                     ) : null}
                   </div>
                 </div>
+                {error ? (
+                  <p className="text-sm text-primary sm:col-span-2" role="alert">
+                    {error}
+                  </p>
+                ) : null}
                 <button
                   type="submit"
+                  disabled={submitting}
                   className="group inline-flex h-14 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-60 sm:col-span-2 cobalt-glow"
                 >
-                  Get my free quote
-                  <ArrowRight
-                    className="h-4 w-4 transition group-hover:translate-x-0.5"
-                    aria-hidden="true"
-                  />
+                  {submitting ? "Sending…" : "Get my free quote"}
+                  {submitting ? null : (
+                    <ArrowRight
+                      className="h-4 w-4 transition group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  )}
                 </button>
               </form>
             )}

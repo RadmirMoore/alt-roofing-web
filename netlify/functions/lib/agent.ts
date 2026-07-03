@@ -82,6 +82,7 @@ export type LeadPayload = {
   zip?: string;
   urgency?: string;
   notes?: string;
+  source?: string;
 };
 
 export type ChatMessage = {

@@ -22,6 +22,7 @@ export function PriceGuarantee() {
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <a
                 href={PHONE_HREF}
+                aria-label="Call ALT Roofing"
                 className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:brightness-110 cobalt-glow"
               >
                 <Phone className="h-4 w-4" aria-hidden="true" />

@@ -12,9 +12,10 @@ export async function notifyLead(lead: LeadPayload): Promise<void> {
   const fromEmail =
     process.env.LEAD_FROM_EMAIL ?? "leads@altroofingsolutions.com";
 
-  const subject = `[Website Lead] ${lead.service} — ${lead.name}`;
+  const source = lead.source ?? "website";
+  const subject = `[Website Lead · ${source}] ${lead.service} — ${lead.name}`;
   const body = [
-    `New lead from AI chat on altroofingsolutions.com`,
+    `New lead from ${source} on altroofingsolutions.com`,
     ``,
     `Name: ${lead.name}`,
     `Phone: ${lead.phone}`,
@@ -57,7 +58,7 @@ export async function notifyLead(lead: LeadPayload): Promise<void> {
     const response = await fetch(webhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ source: "ai-chat", lead, submittedAt: new Date().toISOString() }),
+      body: JSON.stringify({ source, lead, submittedAt: new Date().toISOString() }),
     });
 
     if (!response.ok) {

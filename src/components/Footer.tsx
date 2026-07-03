@@ -26,6 +26,7 @@ export function Footer() {
               <li>
                 <a
                   href={PHONE_HREF}
+                  aria-label="Call ALT Roofing"
                   className="flex items-center gap-2 transition hover:text-foreground"
                 >
                   <Phone className="h-4 w-4 text-primary" aria-hidden="true" />

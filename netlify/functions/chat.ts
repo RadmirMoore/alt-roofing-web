@@ -144,7 +144,7 @@ export default async (request: Request) => {
         for (const toolCall of message.tool_calls) {
           if (toolCall.function.name === "submit_lead") {
             const lead = parseLead(toolCall.function.arguments);
-            await notifyLead(lead);
+            await notifyLead({ ...lead, source: "AI chat" });
             leadSubmitted = true;
             conversation.push({
               role: "tool",

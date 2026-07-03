@@ -2,7 +2,9 @@ export type AnalyticsEventType =
   | "session_start"
   | "pageview"
   | "click"
-  | "exit";
+  | "exit"
+  | "lead"
+  | "call";
 
 export type AnalyticsEvent = {
   id: string;
@@ -37,14 +39,26 @@ export type SessionSummary = {
   events: AnalyticsEvent[];
 };
 
+export type ReturningVisitor = {
+  visitorId: string;
+  sessions: number;
+  leads: number;
+  calls: number;
+  firstSeen: string;
+  lastSeen: string;
+};
+
 export type AnalyticsStats = {
   rangeDays: number;
   generatedAt: string;
   totals: {
     visitors: number;
+    returningVisitors: number;
     sessions: number;
     pageviews: number;
     clicks: number;
+    calls: number;
+    leads: number;
     exits: number;
     avgSessionMs: number;
   };
@@ -53,6 +67,7 @@ export type AnalyticsStats = {
   topSections: Array<{ label: string; count: number }>;
   exitPages: Array<{ label: string; count: number }>;
   dailyVisitors: Array<{ date: string; visitors: number; sessions: number }>;
+  returningVisitors: ReturningVisitor[];
   recentSessions: SessionSummary[];
 };
 

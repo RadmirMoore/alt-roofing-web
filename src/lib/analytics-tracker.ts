@@ -3,7 +3,7 @@ const SESSION_KEY = "alt_session_id";
 const SESSION_STARTED_KEY = "alt_session_started_at";
 
 type TrackPayload = {
-  type: "session_start" | "pageview" | "click" | "exit";
+  type: "session_start" | "pageview" | "click" | "exit" | "lead" | "call";
   label?: string;
   target?: string;
   href?: string;
@@ -147,6 +147,10 @@ function trackPageView() {
   });
 }
 
+export function trackLead(label = "Quote form submitted", section = "quote") {
+  void sendEvent({ type: "lead", label, section });
+}
+
 let initialized = false;
 
 export function initAnalytics() {
@@ -162,8 +166,9 @@ export function initAnalytics() {
     "click",
     (event) => {
       const details = describeClick(event.target);
+      const isCall = details.href?.startsWith("tel:") ?? false;
       void sendEvent({
-        type: "click",
+        type: isCall ? "call" : "click",
         label: details.label,
         target: details.target,
         href: details.href,

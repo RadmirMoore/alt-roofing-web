@@ -7,6 +7,7 @@ export function MobileBar() {
       <div className="grid grid-cols-2 gap-3">
         <a
           href={PHONE_HREF}
+          aria-label="Call ALT Roofing"
           className="flex h-14 items-center justify-center gap-2 rounded-full border border-border py-3.5 text-sm font-semibold"
         >
           <Phone className="h-4 w-4 text-primary" aria-hidden="true" />

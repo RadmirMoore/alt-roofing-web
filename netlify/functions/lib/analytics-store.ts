@@ -1,5 +1,10 @@
 import { getStore } from "@netlify/blobs";
-import type { AnalyticsEvent, AnalyticsStats, SessionSummary } from "./analytics-types";
+import type {
+  AnalyticsEvent,
+  AnalyticsStats,
+  ReturningVisitor,
+  SessionSummary,
+} from "./analytics-types";
 import { dayKey, eventsKey } from "./analytics-types";
 
 function getAnalyticsStore() {
@@ -111,7 +116,11 @@ export async function getAnalyticsStats(days: number): Promise<AnalyticsStats> {
   const visitors = new Set(events.map((event) => event.visitorId));
   const pageviews = events.filter((event) => event.type === "pageview").length;
   const clicks = events.filter((event) => event.type === "click").length;
+  const calls = events.filter((event) => event.type === "call").length;
+  const leads = events.filter((event) => event.type === "lead").length;
   const exits = events.filter((event) => event.type === "exit").length;
+
+  const returningVisitors = buildReturningVisitors(events, sessions);
 
   const pageMap = new Map<string, number>();
   const clickMap = new Map<string, number>();
@@ -161,9 +170,12 @@ export async function getAnalyticsStats(days: number): Promise<AnalyticsStats> {
     generatedAt: new Date().toISOString(),
     totals: {
       visitors: visitors.size,
+      returningVisitors: returningVisitors.length,
       sessions: sessions.length,
       pageviews,
       clicks,
+      calls,
+      leads,
       exits,
       avgSessionMs,
     },
@@ -172,8 +184,58 @@ export async function getAnalyticsStats(days: number): Promise<AnalyticsStats> {
     topSections: topEntries(sectionMap),
     exitPages: topEntries(exitMap),
     dailyVisitors,
+    returningVisitors,
     recentSessions: sessions.slice(0, 50),
   };
+}
+
+function buildReturningVisitors(
+  events: AnalyticsEvent[],
+  sessions: SessionSummary[],
+): ReturningVisitor[] {
+  const sessionsByVisitor = new Map<string, number>();
+  for (const session of sessions) {
+    sessionsByVisitor.set(
+      session.visitorId,
+      (sessionsByVisitor.get(session.visitorId) ?? 0) + 1,
+    );
+  }
+
+  const stats = new Map<
+    string,
+    { leads: number; calls: number; firstSeen: string; lastSeen: string }
+  >();
+  for (const event of events) {
+    const entry = stats.get(event.visitorId) ?? {
+      leads: 0,
+      calls: 0,
+      firstSeen: event.timestamp,
+      lastSeen: event.timestamp,
+    };
+    if (event.type === "lead") entry.leads += 1;
+    if (event.type === "call") entry.calls += 1;
+    if (event.timestamp < entry.firstSeen) entry.firstSeen = event.timestamp;
+    if (event.timestamp > entry.lastSeen) entry.lastSeen = event.timestamp;
+    stats.set(event.visitorId, entry);
+  }
+
+  const returning: ReturningVisitor[] = [];
+  for (const [visitorId, sessionCount] of sessionsByVisitor) {
+    if (sessionCount < 2) continue;
+    const entry = stats.get(visitorId);
+    returning.push({
+      visitorId,
+      sessions: sessionCount,
+      leads: entry?.leads ?? 0,
+      calls: entry?.calls ?? 0,
+      firstSeen: entry?.firstSeen ?? "",
+      lastSeen: entry?.lastSeen ?? "",
+    });
+  }
+
+  return returning
+    .sort((a, b) => b.sessions - a.sessions)
+    .slice(0, 25);
 }
 
 export function sanitizeIncomingEvent(raw: unknown): AnalyticsEvent | null {
@@ -184,6 +246,8 @@ export function sanitizeIncomingEvent(raw: unknown): AnalyticsEvent | null {
     "pageview",
     "click",
     "exit",
+    "lead",
+    "call",
   ];
 
   if (!event.type || !allowed.includes(event.type)) return null;

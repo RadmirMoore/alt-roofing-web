@@ -269,6 +269,7 @@ export function ChatAgent() {
                 <span>Licensed & insured · Los Angeles</span>
                 <a
                   href={PHONE_HREF}
+                  aria-label="Call ALT Roofing"
                   className="inline-flex items-center gap-1 text-primary transition hover:underline"
                 >
                   <Phone className="h-3 w-3" aria-hidden="true" />

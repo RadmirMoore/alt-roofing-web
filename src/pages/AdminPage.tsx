@@ -1,11 +1,14 @@
 import {
   BarChart3,
+  ClipboardCheck,
   Clock3,
   Eye,
   Loader2,
   LogOut,
   MousePointerClick,
+  PhoneCall,
   RefreshCw,
+  Repeat,
   Users,
 } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -23,20 +26,34 @@ function StatCard({
   label,
   value,
   icon: Icon,
+  sub,
+  highlight = false,
 }: {
   label: string;
   value: string | number;
   icon: typeof Users;
+  sub?: string;
+  highlight?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
+    <div
+      className={`rounded-2xl border bg-card p-5 ${
+        highlight ? "border-primary/40" : "border-border"
+      }`}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="text-sm text-foreground/60">{label}</div>
         <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
       </div>
       <div className="mt-3 font-display text-3xl font-bold">{value}</div>
+      {sub ? <div className="mt-1 text-xs text-foreground/50">{sub}</div> : null}
     </div>
   );
+}
+
+function conversion(count: number, visitors: number) {
+  if (!visitors) return "0% of visitors";
+  return `${Math.round((count / visitors) * 1000) / 10}% of visitors`;
 }
 
 function RankList({
@@ -300,9 +317,29 @@ export function AdminPage() {
           <>
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <StatCard
+                label="Form leads"
+                value={stats.totals.leads}
+                sub={conversion(stats.totals.leads, stats.totals.visitors)}
+                icon={ClipboardCheck}
+                highlight
+              />
+              <StatCard
+                label="Call clicks"
+                value={stats.totals.calls}
+                sub={conversion(stats.totals.calls, stats.totals.visitors)}
+                icon={PhoneCall}
+                highlight
+              />
+              <StatCard
                 label="Unique visitors"
                 value={stats.totals.visitors}
                 icon={Users}
+              />
+              <StatCard
+                label="Returning visitors"
+                value={stats.totals.returningVisitors}
+                sub="2+ sessions, same browser"
+                icon={Repeat}
               />
               <StatCard
                 label="Sessions"
@@ -357,6 +394,52 @@ export function AdminPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+              <h3 className="font-display text-lg font-semibold">
+                Returning visitors
+              </h3>
+              <p className="mt-1 text-xs text-foreground/50">
+                Same browser across 2+ sessions (localStorage-based; resets on a
+                new device, browser, or cleared data).
+              </p>
+              <div className="mt-4 space-y-2">
+                {stats.returningVisitors.length === 0 ? (
+                  <p className="text-sm text-foreground/50">
+                    No returning visitors yet.
+                  </p>
+                ) : (
+                  stats.returningVisitors.map((visitor) => (
+                    <div
+                      key={visitor.visitorId}
+                      className="flex flex-col gap-1 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm md:flex-row md:items-center md:justify-between"
+                    >
+                      <span className="font-display font-semibold">
+                        Visitor {visitor.visitorId.slice(0, 8)}
+                      </span>
+                      <span className="flex flex-wrap gap-2 text-xs text-foreground/60">
+                        <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-primary">
+                          {visitor.sessions} visits
+                        </span>
+                        {visitor.leads > 0 ? (
+                          <span className="rounded-full border border-border px-2.5 py-1">
+                            {visitor.leads} lead{visitor.leads > 1 ? "s" : ""}
+                          </span>
+                        ) : null}
+                        {visitor.calls > 0 ? (
+                          <span className="rounded-full border border-border px-2.5 py-1">
+                            {visitor.calls} call{visitor.calls > 1 ? "s" : ""}
+                          </span>
+                        ) : null}
+                        <span className="rounded-full border border-border px-2.5 py-1">
+                          last {formatDateTime(visitor.lastSeen)}
+                        </span>
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
