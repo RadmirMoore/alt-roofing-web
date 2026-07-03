@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  ClipboardCheck,
   CloudLightning,
   FileCheck,
   House,
@@ -8,7 +9,6 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
-  Sun,
   Wrench,
 } from "lucide-react";
 
@@ -33,7 +33,7 @@ export const siteCopy = {
   priceGuarantee: {
     label: "Lowest Price Guarantee",
     title: "We'll beat any price.",
-    body: "Find a lower written estimate from a licensed roofing competitor in Southern California? We'll match it — and take an additional",
+    body: "Find a lower written estimate from a licensed roofing competitor in Southern California, if the quote is apple-to-apple? We'll match it — and take an additional",
     highlight: "10% off",
     bodyEnd: "on top. Guaranteed.",
     ctaSecondary: "Get a free roof quote",
@@ -134,10 +134,10 @@ export const services: Service[] = [
     icon: Shield,
   },
   {
-    title: "Skylights & Coatings",
+    title: "Roof Report for Insurance",
     description:
-      "Skylight installation, reflective roof coatings, and cool-roof upgrades designed for LA's intense sun and energy efficiency goals.",
-    icon: Sun,
+      "Detailed roof inspection reports for insurance claims — dated photos, measurements, and honest damage assessments to document your loss and support the claim.",
+    icon: ClipboardCheck,
   },
 ];
 
@@ -162,6 +162,34 @@ export const reviews = [
     name: "Rad M.",
     initial: "R",
     location: "Sacramento, CA · May 9, 2026",
+  },
+  {
+    quote:
+      "ALT Roofing replaced our whole roof after storm damage and made the insurance side painless. They documented everything, sent a full report with photos, and the crew finished ahead of schedule. Clean, professional, and fairly priced.",
+    name: "Marisol T.",
+    initial: "M",
+    location: "Pasadena, CA · Apr 22, 2026",
+  },
+  {
+    quote:
+      "Got three quotes and ALT came in the most honest — no upselling, just what the roof actually needed. They tracked down a persistent leak two other companies couldn't find and fixed it for good. Highly recommend.",
+    name: "David R.",
+    initial: "D",
+    location: "Long Beach, CA · Apr 3, 2026",
+  },
+  {
+    quote:
+      "Professional from the first call. They walked me through the whole process, showed photos of the damage, and the new roof looks fantastic. The crew was respectful and cleaned up every last nail. Couldn't be happier.",
+    name: "Jennifer K.",
+    initial: "J",
+    location: "Burbank, CA · Mar 18, 2026",
+  },
+  {
+    quote:
+      "Fast, reliable, and fair. Had an emergency leak during the rain and they came out same day to tarp it, then did a permanent repair that week. Great communication the entire time.",
+    name: "Carlos N.",
+    initial: "C",
+    location: "Santa Clarita, CA · Mar 2, 2026",
   },
 ] as const;
 
