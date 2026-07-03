@@ -167,52 +167,76 @@ export const reviews = [
 
 export const galleryImages = [
   {
-    src: "/images/gallery/gallery-01-aerial-charcoal-shingles.png",
-    alt: "Aerial view of completed charcoal architectural shingle roof replacement in Southern California",
+    src: "/images/gallery/gallery-01.jpg",
+    alt: "Completed roof replacement on a Craftsman-style Los Angeles home framed by mature trees",
   },
   {
-    src: "/images/gallery/gallery-02-completed-home-front.png",
-    alt: "Completed grey shingle roof with brick chimney on a Los Angeles area home",
+    src: "/images/gallery/gallery-02.jpg",
+    alt: "Fresh grey architectural shingles with a new vent pipe and brick chimney flashing",
   },
   {
-    src: "/images/gallery/gallery-03-grey-shingles-skylights.png",
-    alt: "Grey asphalt shingle roof with skylights and ridge caps installed by ALT Roofing",
+    src: "/images/gallery/gallery-03.jpg",
+    alt: "Aerial view of a completed dark asphalt shingle roof on a Southern California home",
   },
   {
-    src: "/images/gallery/gallery-04-charcoal-shingle-hip-roof.png",
-    alt: "Charcoal architectural shingle hip roof with skylights and roof vents",
+    src: "/images/gallery/gallery-04.jpg",
+    alt: "Overhead view of a finished shingle roof and driveway on a suburban Los Angeles home",
   },
   {
-    src: "/images/gallery/gallery-05-grey-shingle-slope.png",
-    alt: "Professional grey shingle roof installation on a residential slope",
+    src: "/images/gallery/gallery-05.jpg",
+    alt: "Warm brown architectural shingle hip roof surrounded by tall pines",
   },
   {
-    src: "/images/gallery/gallery-06-shingle-ridge-vents.png",
-    alt: "Close-up of grey shingle roof with ridge caps and venting systems",
+    src: "/images/gallery/gallery-06.jpg",
+    alt: "New shingle roof in progress with staged shingle bundles on the deck",
   },
   {
-    src: "/images/gallery/gallery-07-shingles-brick-chimney.png",
-    alt: "Grey shingle roof with red brick chimney and metal roof vent",
+    src: "/images/gallery/gallery-07.jpg",
+    alt: "Grey shingle roof under a clear blue sky with palm trees on the horizon",
   },
   {
-    src: "/images/gallery/gallery-08-light-grey-shingles.png",
-    alt: "Light grey architectural shingle roof with clean flashing around vents",
+    src: "/images/gallery/gallery-08.jpg",
+    alt: "Concrete tile roof installation with underlayment strips and staged tiles",
   },
   {
-    src: "/images/gallery/gallery-09-proarmor-underlayment.png",
-    alt: "Owens Corning ProArmor synthetic underlayment installed before shingle placement",
+    src: "/images/gallery/gallery-09.jpg",
+    alt: "Aerial view of a grey architectural shingle hip roof with clean ridge lines",
   },
   {
-    src: "/images/gallery/gallery-10-owens-corning-proarmor.png",
-    alt: "Roof tear-off with Owens Corning ProArmor underlayment and staged shingles",
+    src: "/images/gallery/gallery-10.jpg",
+    alt: "Grey shingle roof slope overlooking a backyard pool",
   },
   {
-    src: "/images/gallery/gallery-11-tile-installation.png",
-    alt: "Westlake Royal TileSeal HT underlayment and clay tile roof installation in progress",
+    src: "/images/gallery/gallery-11.jpg",
+    alt: "Flat roof recover with a blue modified-bitumen membrane around the chimney",
   },
   {
-    src: "/images/gallery/gallery-12-tile-underlayment-battens.png",
-    alt: "Spanish tile roof project showing underlayment, battens, and finished tile sections",
+    src: "/images/gallery/gallery-12.jpg",
+    alt: "Coated flat roof section meeting new asphalt shingles on a residential home",
+  },
+  {
+    src: "/images/gallery/gallery-13.jpg",
+    alt: "Synthetic underlayment installed across a roof deck before shingle placement",
+  },
+  {
+    src: "/images/gallery/gallery-14.jpg",
+    alt: "Newly installed architectural shingles with a roof vent under a blue sky",
+  },
+  {
+    src: "/images/gallery/gallery-15.jpg",
+    alt: "Tan shingle roof with a hillside neighborhood view during installation",
+  },
+  {
+    src: "/images/gallery/gallery-16.jpg",
+    alt: "Grey shingle ridge and chimney on a completed roof, aerial neighborhood view",
+  },
+  {
+    src: "/images/gallery/gallery-17.jpg",
+    alt: "Two-story Los Angeles home with a freshly completed roof and clean gutters",
+  },
+  {
+    src: "/images/gallery/gallery-18.jpg",
+    alt: "Finished white flat roof at sunset with palm trees and a dramatic sky",
   },
 ] as const;
 

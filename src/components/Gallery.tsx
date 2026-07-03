@@ -35,6 +35,10 @@ function GalleryRow({
 }
 
 export function Gallery() {
+  const midpoint = Math.ceil(galleryImages.length / 2);
+  const rowOne = galleryImages.slice(0, midpoint);
+  const rowTwo = galleryImages.slice(midpoint);
+
   return (
     <section id="gallery" className="relative overflow-hidden py-24 md:py-32">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
@@ -50,8 +54,8 @@ export function Gallery() {
       </div>
 
       <div className="space-y-4 md:space-y-6">
-        <GalleryRow images={galleryImages} />
-        <GalleryRow images={[...galleryImages].reverse()} reverse />
+        <GalleryRow images={rowOne} />
+        <GalleryRow images={rowTwo} reverse />
       </div>
     </section>
   );
