@@ -2,6 +2,9 @@ import type { LeadPayload } from "./agent";
 
 type ResendResponse = {
   id?: string;
+  name?: string;
+  message?: string;
+  statusCode?: number;
   error?: { message?: string };
 };
 
@@ -46,8 +49,10 @@ export async function notifyLead(lead: LeadPayload): Promise<void> {
     });
 
     if (!response.ok) {
-      const data = (await response.json()) as ResendResponse;
-      throw new Error(data.error?.message ?? "Failed to send lead email");
+      const data = (await response.json().catch(() => null)) as ResendResponse | null;
+      const detail =
+        data?.message ?? data?.error?.message ?? `HTTP ${response.status}`;
+      throw new Error(`Resend ${response.status} (from ${fromEmail}): ${detail}`);
     }
 
     return;
