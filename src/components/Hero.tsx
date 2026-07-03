@@ -19,7 +19,20 @@ export function Hero() {
 
   return (
     <section id="top" className="relative w-full overflow-hidden pt-28 md:pt-36">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-5 pb-20 md:grid-cols-12 md:gap-12 md:px-8 md:pb-28">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-0 bg-cover bg-right bg-no-repeat"
+        style={{ backgroundImage: "url(/images/hero-bg.png)" }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-0 bg-gradient-to-r from-background via-background/45 to-transparent"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 z-0 h-32 bg-gradient-to-t from-background to-transparent"
+      />
+      <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-5 pb-20 md:grid-cols-12 md:gap-12 md:px-8 md:pb-28">
         <div className="md:col-span-7">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
