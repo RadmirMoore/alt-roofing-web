@@ -7,6 +7,7 @@ type IncomingLead = {
   phone?: unknown;
   service?: unknown;
   address?: unknown;
+  zip?: unknown;
   message?: unknown;
   inspectionDate?: unknown;
   inspectionTime?: unknown;
@@ -70,6 +71,7 @@ export default async (request: Request) => {
       phone,
       service,
       address: clean(body.address, 200) || undefined,
+      zip: clean(body.zip, 20) || undefined,
       notes: notes || undefined,
       source: clean(body.source, 40) || "quote form",
     };
