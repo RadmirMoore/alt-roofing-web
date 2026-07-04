@@ -2,10 +2,20 @@ import { getStore } from "@netlify/blobs";
 import type {
   AnalyticsEvent,
   AnalyticsStats,
+  HeatmapDevice,
+  HeatmapResponse,
+  HeatmapType,
+  MoveCell,
   ReturningVisitor,
   SessionSummary,
 } from "./analytics-types";
-import { dayKey, eventsKey } from "./analytics-types";
+import {
+  dayKey,
+  eventsKey,
+  HEATMAP_COLS,
+  HEATMAP_ROWS,
+  SCROLL_BANDS,
+} from "./analytics-types";
 
 function getAnalyticsStore() {
   return getStore({ name: "alt-analytics", consistency: "strong" });
@@ -248,6 +258,7 @@ export function sanitizeIncomingEvent(raw: unknown): AnalyticsEvent | null {
     "exit",
     "lead",
     "call",
+    "move_batch",
   ];
 
   if (!event.type || !allowed.includes(event.type)) return null;
@@ -280,5 +291,108 @@ export function sanitizeIncomingEvent(raw: unknown): AnalyticsEvent | null {
       typeof event.scrollDepth === "number"
         ? Math.min(Math.max(event.scrollDepth, 0), 100)
         : undefined,
+    nx: clamp01OrUndefined(event.nx),
+    ny: clamp01OrUndefined(event.ny),
+    moveCells: sanitizeMoveCells(event.moveCells),
   };
+}
+
+function clamp01OrUndefined(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return Math.min(1, Math.max(0, value));
+}
+
+function sanitizeMoveCells(raw: unknown): MoveCell[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const maxCells = 2000;
+  const cells: MoveCell[] = [];
+  for (const item of raw) {
+    if (cells.length >= maxCells) break;
+    if (!item || typeof item !== "object") continue;
+    const cell = item as Partial<MoveCell>;
+    const x = Number(cell.x);
+    const y = Number(cell.y);
+    const w = Number(cell.w);
+    if (!Number.isInteger(x) || x < 0 || x >= HEATMAP_COLS) continue;
+    if (!Number.isInteger(y) || y < 0 || y >= HEATMAP_ROWS) continue;
+    if (!Number.isFinite(w) || w <= 0) continue;
+    cells.push({ x, y, w: Math.min(w, 100_000) });
+  }
+  return cells.length > 0 ? cells : undefined;
+}
+
+function heatmapDevice(width: number): HeatmapDevice {
+  return width >= 768 ? "desktop" : "mobile";
+}
+
+export async function getHeatmapGrid(
+  days: number,
+  type: HeatmapType,
+  device: HeatmapDevice,
+): Promise<HeatmapResponse> {
+  const rangeDays = Math.min(Math.max(days, 1), 90);
+  const events = await loadEvents(rangeDays);
+  const forDevice = events.filter(
+    (event) => heatmapDevice(event.viewport?.width ?? 0) === device,
+  );
+
+  if (type === "scroll") {
+    const depths = forDevice
+      .filter(
+        (event) => event.type === "exit" && typeof event.scrollDepth === "number",
+      )
+      .map((event) => event.scrollDepth as number);
+    const total = depths.length;
+    const cells: MoveCell[] = [];
+    for (let band = 0; band < SCROLL_BANDS; band += 1) {
+      const threshold = (band / SCROLL_BANDS) * 100;
+      const reached =
+        total === 0 ? 0 : depths.filter((d) => d >= threshold).length / total;
+      cells.push({ x: 0, y: band, w: reached });
+    }
+    return {
+      type,
+      device,
+      rangeDays,
+      grid: { cols: 1, rows: SCROLL_BANDS },
+      cells,
+      maxWeight: 1,
+      sampleCount: total,
+    };
+  }
+
+  const grid = { cols: HEATMAP_COLS, rows: HEATMAP_ROWS };
+  const weights = new Map<string, number>();
+  let sampleCount = 0;
+
+  if (type === "click") {
+    for (const event of forDevice) {
+      if (event.type !== "click" && event.type !== "call") continue;
+      if (typeof event.nx !== "number" || typeof event.ny !== "number") continue;
+      const x = Math.min(grid.cols - 1, Math.floor(event.nx * grid.cols));
+      const y = Math.min(grid.rows - 1, Math.floor(event.ny * grid.rows));
+      const key = `${x},${y}`;
+      weights.set(key, (weights.get(key) ?? 0) + 1);
+      sampleCount += 1;
+    }
+  } else {
+    for (const event of forDevice) {
+      if (event.type !== "move_batch" || !event.moveCells) continue;
+      sampleCount += 1;
+      for (const cell of event.moveCells) {
+        const key = `${cell.x},${cell.y}`;
+        weights.set(key, (weights.get(key) ?? 0) + cell.w);
+      }
+    }
+  }
+
+  const cells: MoveCell[] = [];
+  let maxWeight = 0;
+  for (const [key, w] of weights) {
+    const [x, y] = key.split(",").map(Number);
+    cells.push({ x, y, w });
+    if (w > maxWeight) maxWeight = w;
+  }
+
+  return { type, device, rangeDays, grid, cells, maxWeight, sampleCount };
 }

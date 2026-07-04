@@ -4,7 +4,11 @@ export type AnalyticsEventType =
   | "click"
   | "exit"
   | "lead"
-  | "call";
+  | "call"
+  | "move_batch";
+
+/** One dwell cell in a mouse-attention batch: grid indices + accumulated weight. */
+export type MoveCell = { x: number; y: number; w: number };
 
 export type AnalyticsEvent = {
   id: string;
@@ -23,6 +27,12 @@ export type AnalyticsEvent = {
   section?: string;
   durationMs?: number;
   scrollDepth?: number;
+  /** Normalized click position across full page width [0..1]. */
+  nx?: number;
+  /** Normalized click position down full document height [0..1]. */
+  ny?: number;
+  /** Aggregated mouse-attention dwell grid (only on move_batch events). */
+  moveCells?: MoveCell[];
 };
 
 export type SessionSummary = {
@@ -46,6 +56,29 @@ export type ReturningVisitor = {
   calls: number;
   firstSeen: string;
   lastSeen: string;
+};
+
+/**
+ * Fixed heatmap grid resolution, shared by the client tracker (move-dwell
+ * aggregation) and the server aggregator (click bucketing). Both sides must
+ * agree, so these constants live in the shared types file.
+ */
+export const HEATMAP_COLS = 40;
+export const HEATMAP_ROWS = 120;
+/** Number of horizontal bands used for the scroll-reach heatmap. */
+export const SCROLL_BANDS = 20;
+
+export type HeatmapType = "click" | "move" | "scroll";
+export type HeatmapDevice = "desktop" | "mobile";
+
+export type HeatmapResponse = {
+  type: HeatmapType;
+  device: HeatmapDevice;
+  rangeDays: number;
+  grid: { cols: number; rows: number };
+  cells: MoveCell[];
+  maxWeight: number;
+  sampleCount: number;
 };
 
 export type AnalyticsStats = {

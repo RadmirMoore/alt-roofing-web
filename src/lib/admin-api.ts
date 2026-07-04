@@ -1,4 +1,9 @@
-import type { AnalyticsStats } from "../types/analytics";
+import type {
+  AnalyticsStats,
+  HeatmapDevice,
+  HeatmapResponse,
+  HeatmapType,
+} from "../types/analytics";
 
 const TOKEN_KEY = "alt_admin_token";
 
@@ -52,6 +57,42 @@ export async function fetchAnalyticsStats(days: number): Promise<AnalyticsStats>
 
   if (!response.ok) {
     throw new Error(data.error ?? "Failed to load analytics");
+  }
+
+  return data;
+}
+
+export async function fetchHeatmap(
+  days: number,
+  type: HeatmapType,
+  device: HeatmapDevice,
+): Promise<HeatmapResponse> {
+  const token = getAdminToken();
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const query = new URLSearchParams({
+    days: String(days),
+    type,
+    device,
+  });
+
+  const response = await fetch(`/api/heatmap?${query.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = (await response.json()) as HeatmapResponse & { error?: string };
+
+  if (response.status === 401) {
+    clearAdminToken();
+    throw new Error("Session expired. Please log in again.");
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error ?? "Failed to load heatmap");
   }
 
   return data;
