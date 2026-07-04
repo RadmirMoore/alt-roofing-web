@@ -390,6 +390,7 @@ export const quoteServiceOptions = [
   "Inspection",
   "Storm / Emergency",
   "Roof Maintenance",
+  "Roof Report for Insurance",
   "Other",
 ] as const;
 

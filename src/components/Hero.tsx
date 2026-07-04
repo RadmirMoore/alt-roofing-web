@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { siteCopy } from "../data/content";
 import { FadeIn, inputClassName } from "./ui";
 import { trackLead } from "../lib/analytics-tracker";
+import { isValidPhone } from "../lib/validate";
 
 export function Hero() {
   const [name, setName] = useState("");
@@ -19,6 +20,11 @@ export function Hero() {
 
     if (!name.trim() || !phone.trim()) {
       setError("Please add your name and phone number.");
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      setError("Please enter a valid phone number (10 digits with area code).");
       return;
     }
 

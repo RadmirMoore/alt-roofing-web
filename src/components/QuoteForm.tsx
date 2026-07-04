@@ -16,6 +16,7 @@ import {
   textareaClassName,
 } from "./ui";
 import { trackLead } from "../lib/analytics-tracker";
+import { isValidPhone } from "../lib/validate";
 
 export function QuoteForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -42,6 +43,11 @@ export function QuoteForm() {
 
     if (!payload.name || !payload.phone || !payload.service) {
       setError("Please add your name, phone, and the service you need.");
+      return;
+    }
+
+    if (!isValidPhone(payload.phone)) {
+      setError("Please enter a valid phone number (10 digits with area code).");
       return;
     }
 

@@ -6,6 +6,7 @@ import {
   type LeadPayload,
 } from "./lib/agent";
 import { notifyLead } from "./lib/lead-mailer";
+import { isValidPhone } from "./lib/validate";
 
 type OpenAIMessage =
   | { role: "system" | "user" | "assistant"; content: string }
@@ -142,17 +143,46 @@ export default async (request: Request) => {
         conversation.push(message);
 
         for (const toolCall of message.tool_calls) {
-          if (toolCall.function.name === "submit_lead") {
-            const lead = parseLead(toolCall.function.arguments);
-            await notifyLead({ ...lead, source: "AI chat" });
-            leadSubmitted = true;
+          if (toolCall.function.name !== "submit_lead") {
+            conversation.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: "Unsupported tool.",
+            });
+            continue;
+          }
+
+          let lead: LeadPayload;
+          try {
+            lead = parseLead(toolCall.function.arguments);
+          } catch {
             conversation.push({
               role: "tool",
               tool_call_id: toolCall.id,
               content:
-                "Lead submitted successfully. Confirm to the customer that our team will call them back today, usually within a few hours.",
+                "Could not submit yet — name, phone, and service are all required. Ask the customer for whatever is missing, then submit again. Do not tell the customer it was submitted.",
             });
+            continue;
           }
+
+          if (!isValidPhone(lead.phone)) {
+            conversation.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content:
+                "The phone number doesn't look valid — we need a 10-digit US number with area code. Politely ask the customer to confirm their phone number, then submit again. Do NOT tell the customer the lead was submitted yet.",
+            });
+            continue;
+          }
+
+          await notifyLead({ ...lead, source: "AI chat" });
+          leadSubmitted = true;
+          conversation.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            content:
+              "Lead submitted successfully. Confirm to the customer that our team will call them back today, usually within a few hours.",
+          });
         }
 
         continue;

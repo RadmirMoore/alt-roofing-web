@@ -1,6 +1,7 @@
 import type { Config } from "@netlify/functions";
 import type { LeadPayload } from "./lib/agent";
 import { notifyLead } from "./lib/lead-mailer";
+import { isValidPhone } from "./lib/validate";
 
 type IncomingLead = {
   name?: unknown;
@@ -50,6 +51,13 @@ export default async (request: Request) => {
 
     if (!name || !phone || !service) {
       return json({ error: "Name, phone, and service are required." }, 400);
+    }
+
+    if (!isValidPhone(phone)) {
+      return json(
+        { error: "Please enter a valid phone number (10 digits with area code)." },
+        400,
+      );
     }
 
     const message = clean(body.message, 2000);

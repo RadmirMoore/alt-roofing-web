@@ -17,7 +17,7 @@ SERVICES:
 - Inspections (detailed, with photos, no pressure)
 - Storm / Emergency (rapid response for active leaks)
 - Roof Maintenance (seasonal upkeep, debris removal)
-- Skylights & Coatings (reflective/cool-roof upgrades)
+- Roof Report for Insurance (documented inspection reports for insurance claims — dated photos, measurements, damage assessment)
 
 MATERIALS: Owens Corning, Polyglass, Westlake Royal Roofing Solutions
 
@@ -52,7 +52,7 @@ export const SUBMIT_LEAD_TOOL = {
             "Inspection",
             "Storm / Emergency",
             "Roof Maintenance",
-            "Skylights & Coatings",
+            "Roof Report for Insurance",
             "Other",
           ],
         },
