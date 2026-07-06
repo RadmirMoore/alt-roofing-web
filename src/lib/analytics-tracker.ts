@@ -50,7 +50,7 @@ function normalizedPoint(clientX: number, clientY: number) {
   };
 }
 
-function getVisitorId() {
+export function getVisitorId() {
   let id = localStorage.getItem(VISITOR_KEY);
   if (!id) {
     id = crypto.randomUUID();

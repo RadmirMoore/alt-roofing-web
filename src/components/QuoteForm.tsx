@@ -15,7 +15,7 @@ import {
   SectionLabel,
   textareaClassName,
 } from "./ui";
-import { trackLead } from "../lib/analytics-tracker";
+import { getVisitorId, trackLead } from "../lib/analytics-tracker";
 import { isValidPhone } from "../lib/validate";
 
 export function QuoteForm() {
@@ -39,6 +39,7 @@ export function QuoteForm() {
       inspectionDate: String(data.get("inspection-date") ?? "").trim(),
       inspectionTime: String(data.get("inspection-time") ?? "").trim(),
       source: "quote form",
+      visitorId: getVisitorId(),
     };
 
     if (!payload.name || !payload.phone || !payload.service) {

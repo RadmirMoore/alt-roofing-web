@@ -32,12 +32,16 @@ import {
   clearAdminToken,
   fetchAnalyticsStats,
   fetchHeatmap,
+  fetchLeads,
   formatDateTime,
   formatDuration,
   getAdminToken,
   loginAdmin,
 } from "../lib/admin-api";
 import { renderHeatmap } from "../lib/heatmap-render";
+import { LeadsPanel } from "../components/admin/LeadsPanel";
+
+type AdminView = "analytics" | "leads";
 
 function StatCard({
   label,
@@ -440,6 +444,8 @@ function HeatmapSection({ days }: { days: number }) {
 
 export function AdminPage() {
   const [authed, setAuthed] = useState(Boolean(getAdminToken()));
+  const [view, setView] = useState<AdminView>("analytics");
+  const [newLeads, setNewLeads] = useState(0);
   const [days, setDays] = useState(7);
   const [stats, setStats] = useState<AnalyticsStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -480,6 +486,25 @@ export function AdminPage() {
     }
   }, [authed, loadStats]);
 
+  // Keep the "new leads" badge fresh so the operator sees fresh inbound work
+  // without having to open the Leads tab.
+  useEffect(() => {
+    if (!authed) return;
+    let active = true;
+    const refresh = () =>
+      fetchLeads({ status: "new" })
+        .then((data) => {
+          if (active) setNewLeads(data.total);
+        })
+        .catch(() => {});
+    void refresh();
+    const id = window.setInterval(refresh, 60_000);
+    return () => {
+      active = false;
+      window.clearInterval(id);
+    };
+  }, [authed, view]);
+
   if (!authed) {
     return <LoginForm onSuccess={() => setAuthed(true)} />;
   }
@@ -492,31 +517,38 @@ export function AdminPage() {
             <div className="text-xs uppercase tracking-[0.25em] text-foreground/50">
               ALT Roofing Admin
             </div>
-            <h1 className="font-display text-4xl font-bold">Site analytics</h1>
+            <h1 className="font-display text-4xl font-bold">
+              {view === "leads" ? "Leads" : "Site analytics"}
+            </h1>
             <p className="mt-2 text-sm text-foreground/65">
-              Visitors, sessions, clicks, section views, and exits for the last{" "}
-              {days} days.
+              {view === "leads"
+                ? "Every form and AI-chat submission, with status, notes, and export."
+                : `Visitors, sessions, clicks, section views, and exits for the last ${days} days.`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <select
-              value={days}
-              onChange={(event) => setDays(Number(event.target.value))}
-              className="h-11 rounded-xl border border-border bg-card px-4 text-sm outline-none focus:border-primary"
-            >
-              <option value={1}>Last 24 hours</option>
-              <option value={7}>Last 7 days</option>
-              <option value={30}>Last 30 days</option>
-              <option value={90}>Last 90 days</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => void loadStats()}
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm transition hover:border-primary/40"
-            >
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              Refresh
-            </button>
+            {view === "analytics" ? (
+              <>
+                <select
+                  value={days}
+                  onChange={(event) => setDays(Number(event.target.value))}
+                  className="h-11 rounded-xl border border-border bg-card px-4 text-sm outline-none focus:border-primary"
+                >
+                  <option value={1}>Last 24 hours</option>
+                  <option value={7}>Last 7 days</option>
+                  <option value={30}>Last 30 days</option>
+                  <option value={90}>Last 90 days</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => void loadStats()}
+                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm transition hover:border-primary/40"
+                >
+                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                  Refresh
+                </button>
+              </>
+            ) : null}
             <button
               type="button"
               onClick={() => {
@@ -531,20 +563,57 @@ export function AdminPage() {
           </div>
         </div>
 
-        {loading && !stats ? (
+        {/* View switcher */}
+        <div className="mt-6 flex gap-1 border-b border-border">
+          <button
+            type="button"
+            onClick={() => setView("analytics")}
+            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+              view === "analytics"
+                ? "border-primary text-foreground"
+                : "border-transparent text-foreground/55 hover:text-foreground"
+            }`}
+          >
+            Analytics
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("leads")}
+            className={`-mb-px inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+              view === "leads"
+                ? "border-primary text-foreground"
+                : "border-transparent text-foreground/55 hover:text-foreground"
+            }`}
+          >
+            Leads
+            {newLeads > 0 ? (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {newLeads}
+              </span>
+            ) : null}
+          </button>
+        </div>
+
+        {view === "leads" ? (
+          <div className="mt-8">
+            <LeadsPanel />
+          </div>
+        ) : null}
+
+        {view === "analytics" && loading && !stats ? (
           <div className="mt-16 flex items-center justify-center gap-3 text-foreground/60">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
             Loading analytics…
           </div>
         ) : null}
 
-        {error ? (
+        {view === "analytics" && error ? (
           <div className="mt-6 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
             {error}
           </div>
         ) : null}
 
-        {stats ? (
+        {view === "analytics" && stats ? (
           <>
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <StatCard

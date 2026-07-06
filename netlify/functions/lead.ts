@@ -1,6 +1,7 @@
 import type { Config } from "@netlify/functions";
 import type { LeadPayload } from "./lib/agent";
 import { notifyLead } from "./lib/lead-mailer";
+import { persistLead } from "./lib/leads-store";
 import { isValidPhone } from "./lib/validate";
 
 type IncomingLead = {
@@ -13,6 +14,7 @@ type IncomingLead = {
   inspectionDate?: unknown;
   inspectionTime?: unknown;
   source?: unknown;
+  visitorId?: unknown;
 };
 
 function json(data: unknown, status = 200) {
@@ -85,6 +87,15 @@ export default async (request: Request) => {
     };
 
     await notifyLead(lead);
+
+    // Best-effort persistence for the admin leads inbox — never let a storage
+    // failure block the notification that already succeeded above.
+    try {
+      await persistLead(lead, { visitorId: clean(body.visitorId, 64) || undefined });
+    } catch (persistError) {
+      console.error("Lead persist error:", persistError);
+    }
+
     return json({ ok: true });
   } catch (error) {
     const message =

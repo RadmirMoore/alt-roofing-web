@@ -6,6 +6,7 @@ import {
   type LeadPayload,
 } from "./lib/agent";
 import { notifyLead } from "./lib/lead-mailer";
+import { persistLead } from "./lib/leads-store";
 import { isValidPhone } from "./lib/validate";
 
 type OpenAIMessage =
@@ -110,8 +111,15 @@ export default async (request: Request) => {
   }
 
   try {
-    const body = (await request.json()) as { messages?: ChatMessage[] };
+    const body = (await request.json()) as {
+      messages?: ChatMessage[];
+      visitorId?: string;
+    };
     const userMessages = sanitizeMessages(body.messages ?? []);
+    const visitorId =
+      typeof body.visitorId === "string"
+        ? body.visitorId.slice(0, 64)
+        : undefined;
 
     if (userMessages.length === 0) {
       return json({ error: "No messages provided" }, 400);
@@ -175,7 +183,13 @@ export default async (request: Request) => {
             continue;
           }
 
-          await notifyLead({ ...lead, source: "AI chat" });
+          const chatLead = { ...lead, source: "AI chat" };
+          await notifyLead(chatLead);
+          try {
+            await persistLead(chatLead, { visitorId });
+          } catch (persistError) {
+            console.error("Chat lead persist error:", persistError);
+          }
           leadSubmitted = true;
           conversation.push({
             role: "tool",

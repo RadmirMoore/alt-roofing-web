@@ -1,3 +1,5 @@
+import { getVisitorId } from "./analytics-tracker";
+
 export type ChatRole = "user" | "assistant";
 
 export type ChatMessage = {
@@ -18,7 +20,7 @@ export async function sendChatMessage(
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, visitorId: getVisitorId() }),
   });
 
   const data = (await response.json()) as ChatResponse;
