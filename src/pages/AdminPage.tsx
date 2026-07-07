@@ -41,6 +41,7 @@ import {
 } from "../lib/admin-api";
 import { renderHeatmap } from "../lib/heatmap-render";
 import { LeadsPanel } from "../components/admin/LeadsPanel";
+import { ChatsPanel } from "../components/admin/ChatsPanel";
 import {
   DeltaBadge,
   DonutChart,
@@ -49,7 +50,7 @@ import {
   TrendChart,
 } from "../components/admin/charts";
 
-type AdminView = "analytics" | "leads";
+type AdminView = "analytics" | "leads" | "chats";
 
 function StatCard({
   label,
@@ -531,12 +532,18 @@ export function AdminPage() {
               ALT Roofing Admin
             </div>
             <h1 className="font-display text-4xl font-bold">
-              {view === "leads" ? "Leads" : "Site analytics"}
+              {view === "leads"
+                ? "Leads"
+                : view === "chats"
+                  ? "AI chat logs"
+                  : "Site analytics"}
             </h1>
             <p className="mt-2 text-sm text-foreground/65">
               {view === "leads"
                 ? "Every form and AI-chat submission, with status, notes, and export."
-                : `Visitors, sessions, clicks, section views, and exits for the last ${days} days.`}
+                : view === "chats"
+                  ? "Full AI-assistant conversations — see which dialogs turned into leads."
+                  : `Visitors, sessions, clicks, section views, and exits for the last ${days} days.`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -605,11 +612,28 @@ export function AdminPage() {
               </span>
             ) : null}
           </button>
+          <button
+            type="button"
+            onClick={() => setView("chats")}
+            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+              view === "chats"
+                ? "border-primary text-foreground"
+                : "border-transparent text-foreground/55 hover:text-foreground"
+            }`}
+          >
+            Chats
+          </button>
         </div>
 
         {view === "leads" ? (
           <div className="mt-8">
             <LeadsPanel />
+          </div>
+        ) : null}
+
+        {view === "chats" ? (
+          <div className="mt-8">
+            <ChatsPanel />
           </div>
         ) : null}
 

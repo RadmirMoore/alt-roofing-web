@@ -1,4 +1,4 @@
-import { getVisitorId } from "./analytics-tracker";
+import { getSessionId, getVisitorId } from "./analytics-tracker";
 
 export type ChatRole = "user" | "assistant";
 
@@ -20,7 +20,11 @@ export async function sendChatMessage(
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, visitorId: getVisitorId() }),
+    body: JSON.stringify({
+      messages,
+      visitorId: getVisitorId(),
+      sessionId: getSessionId(),
+    }),
   });
 
   const data = (await response.json()) as ChatResponse;

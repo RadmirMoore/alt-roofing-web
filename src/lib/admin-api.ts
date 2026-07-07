@@ -9,6 +9,7 @@ import type {
   LeadsResponse,
   StoredLead,
 } from "../types/leads";
+import type { ChatsResponse, StoredChat } from "../types/chats";
 
 const TOKEN_KEY = "alt_admin_token";
 
@@ -184,6 +185,44 @@ export async function downloadLeadsCsv(
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+export async function fetchChats(days?: number): Promise<ChatsResponse> {
+  const query = new URLSearchParams();
+  if (days) query.set("days", String(days));
+
+  const response = await fetch(`/api/chats?${query.toString()}`, {
+    headers: authHeaders(),
+  });
+
+  const data = (await response.json()) as ChatsResponse & { error?: string };
+
+  if (response.status === 401) {
+    clearAdminToken();
+    throw new Error("Session expired. Please log in again.");
+  }
+  if (!response.ok) {
+    throw new Error(data.error ?? "Failed to load chats");
+  }
+  return data;
+}
+
+export async function fetchChat(sessionId: string): Promise<StoredChat> {
+  const response = await fetch(
+    `/api/chats?sessionId=${encodeURIComponent(sessionId)}`,
+    { headers: authHeaders() },
+  );
+
+  const data = (await response.json()) as { chat?: StoredChat; error?: string };
+
+  if (response.status === 401) {
+    clearAdminToken();
+    throw new Error("Session expired. Please log in again.");
+  }
+  if (!response.ok || !data.chat) {
+    throw new Error(data.error ?? "Failed to load chat");
+  }
+  return data.chat;
 }
 
 export function formatDuration(ms: number) {

@@ -59,7 +59,7 @@ export function getVisitorId() {
   return id;
 }
 
-function getSessionId() {
+export function getSessionId() {
   let id = sessionStorage.getItem(SESSION_KEY);
   if (!id) {
     id = crypto.randomUUID();

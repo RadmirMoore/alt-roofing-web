@@ -7,6 +7,7 @@ import {
 } from "./lib/agent";
 import { notifyLead } from "./lib/lead-mailer";
 import { persistLead } from "./lib/leads-store";
+import { persistChat } from "./lib/chats-store";
 import { isValidPhone } from "./lib/validate";
 
 type OpenAIMessage =
@@ -114,12 +115,39 @@ export default async (request: Request) => {
     const body = (await request.json()) as {
       messages?: ChatMessage[];
       visitorId?: string;
+      sessionId?: string;
     };
     const userMessages = sanitizeMessages(body.messages ?? []);
     const visitorId =
       typeof body.visitorId === "string"
         ? body.visitorId.slice(0, 64)
         : undefined;
+    const sessionId =
+      typeof body.sessionId === "string"
+        ? body.sessionId.slice(0, 64)
+        : undefined;
+
+    // Best-effort transcript persistence for the admin chat-logs view. The
+    // client resends full history each turn, so the latest reply completes it.
+    const saveTranscript = async (reply: string, leadDone: boolean) => {
+      if (!sessionId) return;
+      try {
+        await persistChat({
+          sessionId,
+          visitorId,
+          messages: [
+            ...userMessages
+              .filter((m) => m.role !== "system")
+              .map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+            { role: "assistant", content: reply },
+          ],
+          leadSubmitted: leadDone,
+          model: MODEL,
+        });
+      } catch (persistError) {
+        console.error("Chat persist error:", persistError);
+      }
+    };
 
     if (userMessages.length === 0) {
       return json({ error: "No messages provided" }, 400);
@@ -207,15 +235,18 @@ export default async (request: Request) => {
           ? message.content.trim()
           : "Sorry, I had trouble responding. Please call us at (213) 415-6146.";
 
+      await saveTranscript(content, leadSubmitted);
       return json({
         message: content,
         leadSubmitted,
       });
     }
 
+    const fallback =
+      "Thanks for your patience! Our team will follow up shortly — or call us now at (213) 415-6146.";
+    await saveTranscript(fallback, leadSubmitted);
     return json({
-      message:
-        "Thanks for your patience! Our team will follow up shortly — or call us now at (213) 415-6146.",
+      message: fallback,
       leadSubmitted,
     });
   } catch (error) {
