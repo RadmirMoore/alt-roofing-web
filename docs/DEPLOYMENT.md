@@ -87,9 +87,9 @@ The panel has three tabs (deep-linkable — `/admin`, `/admin/leads`, `/admin/ch
 Set `ADMIN_PASSWORD` in Netlify environment variables before first use. Failed
 logins are rate-limited per IP (8 attempts / 15 min) to blunt brute-forcing.
 
-> **Access model:** a single shared password today. Multi-user accounts with
-> roles (owner / view-only manager) are a planned follow-up — the token already
-> flows through `admin-auth.ts` as the extension point.
+> **Access model:** a single shared admin password, by design. There is one
+> operator, so multi-user accounts and roles are intentionally out of scope —
+> `ADMIN_PASSWORD` plus the per-IP login throttle is the whole model.
 
 ### Data storage & retention
 
