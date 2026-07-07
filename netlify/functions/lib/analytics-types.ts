@@ -81,6 +81,18 @@ export type HeatmapResponse = {
   sampleCount: number;
 };
 
+export type PeriodTotals = {
+  visitors: number;
+  sessions: number;
+  pageviews: number;
+  clicks: number;
+  calls: number;
+  leads: number;
+  exits: number;
+};
+
+export type LabelCount = { label: string; count: number };
+
 export type AnalyticsStats = {
   rangeDays: number;
   generatedAt: string;
@@ -95,11 +107,23 @@ export type AnalyticsStats = {
     exits: number;
     avgSessionMs: number;
   };
-  topPages: Array<{ label: string; count: number }>;
-  topClicks: Array<{ label: string; count: number }>;
-  topSections: Array<{ label: string; count: number }>;
-  exitPages: Array<{ label: string; count: number }>;
-  dailyVisitors: Array<{ date: string; visitors: number; sessions: number }>;
+  /** Same-length window immediately before the current one, for delta arrows. */
+  previousTotals: PeriodTotals;
+  topPages: LabelCount[];
+  topClicks: LabelCount[];
+  topSections: LabelCount[];
+  exitPages: LabelCount[];
+  /** Sessions grouped by referrer, viewport class, and browser family. */
+  sources: LabelCount[];
+  devices: LabelCount[];
+  browsers: LabelCount[];
+  dailyVisitors: Array<{
+    date: string;
+    visitors: number;
+    sessions: number;
+    leads: number;
+    calls: number;
+  }>;
   returningVisitors: ReturningVisitor[];
   recentSessions: SessionSummary[];
 };

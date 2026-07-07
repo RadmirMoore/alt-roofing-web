@@ -6,6 +6,7 @@ import type {
   HeatmapResponse,
   HeatmapType,
   MoveCell,
+  PeriodTotals,
   ReturningVisitor,
   SessionSummary,
 } from "./analytics-types";
@@ -118,31 +119,107 @@ function topEntries(map: Map<string, number>, limit = 10) {
     .map(([label, count]) => ({ label, count }));
 }
 
+/** Headline counts for a set of events — used for both the current window and
+ * the immediately-preceding window that powers the delta arrows. */
+function computeTotals(events: AnalyticsEvent[]): PeriodTotals {
+  return {
+    visitors: new Set(events.map((event) => event.visitorId)).size,
+    sessions: new Set(events.map((event) => event.sessionId)).size,
+    pageviews: events.filter((event) => event.type === "pageview").length,
+    clicks: events.filter((event) => event.type === "click").length,
+    calls: events.filter((event) => event.type === "call").length,
+    leads: events.filter((event) => event.type === "lead").length,
+    exits: events.filter((event) => event.type === "exit").length,
+  };
+}
+
+const REFERRER_NAMES: Array<[RegExp, string]> = [
+  [/(^|\.)google\./, "Google"],
+  [/(^|\.)bing\./, "Bing"],
+  [/duckduckgo\./, "DuckDuckGo"],
+  [/(^|\.)yahoo\./, "Yahoo"],
+  [/facebook\.|(^|\.)fb\./, "Facebook"],
+  [/instagram\./, "Instagram"],
+  [/(^|\.)t\.co$|twitter\.|(^|\.)x\.com$/, "X / Twitter"],
+  [/youtube\.|youtu\.be/, "YouTube"],
+  [/linkedin\./, "LinkedIn"],
+  [/yelp\./, "Yelp"],
+  [/reddit\./, "Reddit"],
+  [/tiktok\./, "TikTok"],
+];
+
+function referrerLabel(referrer: string): string {
+  const raw = referrer?.trim();
+  if (!raw) return "Direct / none";
+  let host: string;
+  try {
+    host = new URL(raw).hostname.replace(/^www\./, "");
+  } catch {
+    host = raw.replace(/^www\./, "").split("/")[0];
+  }
+  if (!host) return "Direct / none";
+  for (const [pattern, name] of REFERRER_NAMES) {
+    if (pattern.test(host)) return name;
+  }
+  return host;
+}
+
+function deviceLabel(width: number): string {
+  if (!width || width <= 0) return "Unknown";
+  if (width < 768) return "Mobile";
+  if (width < 1024) return "Tablet";
+  return "Desktop";
+}
+
+function browserLabel(userAgent: string): string {
+  const ua = userAgent ?? "";
+  if (/Edg\//.test(ua)) return "Edge";
+  if (/OPR\/|Opera/.test(ua)) return "Opera";
+  if (/Chrome\//.test(ua) && !/Chromium/.test(ua)) return "Chrome";
+  if (/Firefox\//.test(ua)) return "Firefox";
+  if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return "Safari";
+  return "Other";
+}
+
 export async function getAnalyticsStats(days: number): Promise<AnalyticsStats> {
   const rangeDays = Math.min(Math.max(days, 1), 90);
-  const events = await loadEvents(rangeDays);
+
+  // Load two windows in one pass and split them, so the previous period is
+  // available for deltas without a second round of blob reads.
+  const allEvents = await loadEvents(rangeDays * 2);
+  const boundaryDay = dayKey(
+    new Date(Date.now() - (rangeDays - 1) * 24 * 60 * 60 * 1000),
+  );
+  const events: AnalyticsEvent[] = [];
+  const previousEvents: AnalyticsEvent[] = [];
+  for (const event of allEvents) {
+    if (dayKey(new Date(event.timestamp)) >= boundaryDay) events.push(event);
+    else previousEvents.push(event);
+  }
+
   const sessions = buildSessionSummaries(events);
-
-  const visitors = new Set(events.map((event) => event.visitorId));
-  const pageviews = events.filter((event) => event.type === "pageview").length;
-  const clicks = events.filter((event) => event.type === "click").length;
-  const calls = events.filter((event) => event.type === "call").length;
-  const leads = events.filter((event) => event.type === "lead").length;
-  const exits = events.filter((event) => event.type === "exit").length;
-
+  const core = computeTotals(events);
+  const previousTotals = computeTotals(previousEvents);
   const returningVisitors = buildReturningVisitors(events, sessions);
 
   const pageMap = new Map<string, number>();
   const clickMap = new Map<string, number>();
   const sectionMap = new Map<string, number>();
   const exitMap = new Map<string, number>();
-  const dailyMap = new Map<string, { visitors: Set<string>; sessions: Set<string> }>();
+  const dailyMap = new Map<
+    string,
+    { visitors: Set<string>; sessions: Set<string>; leads: number; calls: number }
+  >();
 
   for (const event of events) {
     const date = dayKey(new Date(event.timestamp));
-    const daily = dailyMap.get(date) ?? { visitors: new Set(), sessions: new Set() };
+    const daily =
+      dailyMap.get(date) ??
+      { visitors: new Set<string>(), sessions: new Set<string>(), leads: 0, calls: 0 };
     daily.visitors.add(event.visitorId);
     daily.sessions.add(event.sessionId);
+    if (event.type === "lead") daily.leads += 1;
+    if (event.type === "call") daily.calls += 1;
     dailyMap.set(date, daily);
 
     if (event.type === "pageview") {
@@ -159,6 +236,19 @@ export async function getAnalyticsStats(days: number): Promise<AnalyticsStats> {
     }
   }
 
+  // Referrer / device / browser breakdowns, counted once per session using the
+  // session's first event (which carries the entry referrer + viewport + UA).
+  const sourceMap = new Map<string, number>();
+  const deviceMap = new Map<string, number>();
+  const browserMap = new Map<string, number>();
+  for (const session of sessions) {
+    const first = session.events[0];
+    if (!first) continue;
+    increment(sourceMap, referrerLabel(first.referrer));
+    increment(deviceMap, deviceLabel(first.viewport?.width ?? 0));
+    increment(browserMap, browserLabel(first.userAgent));
+  }
+
   const avgSessionMs =
     sessions.length > 0
       ? Math.round(
@@ -173,26 +263,32 @@ export async function getAnalyticsStats(days: number): Promise<AnalyticsStats> {
       date,
       visitors: value.visitors.size,
       sessions: value.sessions.size,
+      leads: value.leads,
+      calls: value.calls,
     }));
 
   return {
     rangeDays,
     generatedAt: new Date().toISOString(),
     totals: {
-      visitors: visitors.size,
+      visitors: core.visitors,
       returningVisitors: returningVisitors.length,
-      sessions: sessions.length,
-      pageviews,
-      clicks,
-      calls,
-      leads,
-      exits,
+      sessions: core.sessions,
+      pageviews: core.pageviews,
+      clicks: core.clicks,
+      calls: core.calls,
+      leads: core.leads,
+      exits: core.exits,
       avgSessionMs,
     },
+    previousTotals,
     topPages: topEntries(pageMap),
     topClicks: topEntries(clickMap),
     topSections: topEntries(sectionMap),
     exitPages: topEntries(exitMap),
+    sources: topEntries(sourceMap),
+    devices: topEntries(deviceMap),
+    browsers: topEntries(browserMap),
     dailyVisitors,
     returningVisitors,
     recentSessions: sessions.slice(0, 50),

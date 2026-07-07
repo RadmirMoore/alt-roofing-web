@@ -20,6 +20,7 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import type {
   AnalyticsStats,
@@ -40,6 +41,13 @@ import {
 } from "../lib/admin-api";
 import { renderHeatmap } from "../lib/heatmap-render";
 import { LeadsPanel } from "../components/admin/LeadsPanel";
+import {
+  DeltaBadge,
+  DonutChart,
+  Funnel,
+  SERIES_COLORS,
+  TrendChart,
+} from "../components/admin/charts";
 
 type AdminView = "analytics" | "leads";
 
@@ -48,12 +56,14 @@ function StatCard({
   value,
   icon: Icon,
   sub,
+  delta,
   highlight = false,
 }: {
   label: string;
   value: string | number;
   icon: typeof Users;
   sub?: string;
+  delta?: ReactNode;
   highlight?: boolean;
 }) {
   return (
@@ -66,7 +76,10 @@ function StatCard({
         <div className="text-sm text-foreground/60">{label}</div>
         <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
       </div>
-      <div className="mt-3 font-display text-3xl font-bold">{value}</div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <span className="font-display text-3xl font-bold">{value}</span>
+        {delta}
+      </div>
       {sub ? <div className="mt-1 text-xs text-foreground/50">{sub}</div> : null}
     </div>
   );
@@ -620,6 +633,12 @@ export function AdminPage() {
                 label="Form leads"
                 value={stats.totals.leads}
                 sub={conversion(stats.totals.leads, stats.totals.visitors)}
+                delta={
+                  <DeltaBadge
+                    current={stats.totals.leads}
+                    previous={stats.previousTotals.leads}
+                  />
+                }
                 icon={ClipboardCheck}
                 highlight
               />
@@ -627,12 +646,24 @@ export function AdminPage() {
                 label="Call clicks"
                 value={stats.totals.calls}
                 sub={conversion(stats.totals.calls, stats.totals.visitors)}
+                delta={
+                  <DeltaBadge
+                    current={stats.totals.calls}
+                    previous={stats.previousTotals.calls}
+                  />
+                }
                 icon={PhoneCall}
                 highlight
               />
               <StatCard
                 label="Unique visitors"
                 value={stats.totals.visitors}
+                delta={
+                  <DeltaBadge
+                    current={stats.totals.visitors}
+                    previous={stats.previousTotals.visitors}
+                  />
+                }
                 icon={Users}
               />
               <StatCard
@@ -644,21 +675,46 @@ export function AdminPage() {
               <StatCard
                 label="Sessions"
                 value={stats.totals.sessions}
+                delta={
+                  <DeltaBadge
+                    current={stats.totals.sessions}
+                    previous={stats.previousTotals.sessions}
+                  />
+                }
                 icon={BarChart3}
               />
               <StatCard
                 label="Page views"
                 value={stats.totals.pageviews}
+                delta={
+                  <DeltaBadge
+                    current={stats.totals.pageviews}
+                    previous={stats.previousTotals.pageviews}
+                  />
+                }
                 icon={Eye}
               />
               <StatCard
                 label="Clicks"
                 value={stats.totals.clicks}
+                delta={
+                  <DeltaBadge
+                    current={stats.totals.clicks}
+                    previous={stats.previousTotals.clicks}
+                  />
+                }
                 icon={MousePointerClick}
               />
               <StatCard
                 label="Exits tracked"
                 value={stats.totals.exits}
+                delta={
+                  <DeltaBadge
+                    current={stats.totals.exits}
+                    previous={stats.previousTotals.exits}
+                    invert
+                  />
+                }
                 icon={LogOut}
               />
               <StatCard
@@ -675,26 +731,50 @@ export function AdminPage() {
               <RankList title="Where users leave" items={stats.exitPages} />
             </div>
 
-            <div className="mt-8 rounded-2xl border border-border bg-card p-5">
-              <h3 className="font-display text-lg font-semibold">
-                Visitors by day
-              </h3>
-              <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
-                {stats.dailyVisitors.map((day) => (
-                  <div
-                    key={day.date}
-                    className="rounded-xl border border-border bg-background/60 p-3"
-                  >
-                    <div className="text-xs text-foreground/50">{day.date}</div>
-                    <div className="mt-2 font-display text-2xl font-bold">
-                      {day.visitors}
-                    </div>
-                    <div className="text-xs text-foreground/55">
-                      {day.sessions} sessions
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <TrendChart
+                title="Traffic by day"
+                data={stats.dailyVisitors}
+                series={[
+                  {
+                    key: "visitors",
+                    label: "Visitors",
+                    color: SERIES_COLORS.visitors,
+                  },
+                  {
+                    key: "sessions",
+                    label: "Sessions",
+                    color: SERIES_COLORS.sessions,
+                  },
+                ]}
+              />
+              <TrendChart
+                title="Conversions by day"
+                data={stats.dailyVisitors}
+                series={[
+                  { key: "leads", label: "Leads", color: SERIES_COLORS.leads },
+                  { key: "calls", label: "Calls", color: SERIES_COLORS.calls },
+                ]}
+              />
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <Funnel
+                stages={[
+                  { label: "Sessions (visits)", value: stats.totals.sessions },
+                  { label: "Unique visitors", value: stats.totals.visitors },
+                  {
+                    label: "Leads + calls",
+                    value: stats.totals.leads + stats.totals.calls,
+                  },
+                ]}
+              />
+              <DonutChart title="Devices" segments={stats.devices} />
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <RankList title="Traffic sources" items={stats.sources} />
+              <RankList title="Browsers" items={stats.browsers} />
             </div>
 
             <div className="mt-8 rounded-2xl border border-border bg-card p-5">
