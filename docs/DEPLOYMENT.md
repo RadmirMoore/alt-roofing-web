@@ -71,19 +71,39 @@ In **Site configuration → Environment variables**, add:
 
 Redeploy after adding variables. See `.env.example` for a template.
 
-## 6. Analytics admin panel
+## 6. Admin panel
 
 Open **https://altroofingsolutions.com/admin** and sign in with `ADMIN_PASSWORD`.
+The panel has three tabs (deep-linkable — `/admin`, `/admin/leads`, `/admin/chats`):
 
-The dashboard shows:
+- **Analytics** — unique visitors & sessions, page/section views, clicks, exits
+  with time-on-site & scroll depth, traffic/conversion trend charts, a conversion
+  funnel, device/source/browser breakdowns, click/attention/scroll heatmaps, and
+  full per-session event timelines.
+- **Leads** — every quote-form and AI-chat lead with a status pipeline
+  (new → contacted → quoted → won → lost), internal notes, and CSV export.
+- **Chats** — full AI-assistant transcripts, flagged when they produced a lead.
 
-- Unique visitors and sessions
-- Page/section views (hash navigation like `#services`, `#quote`)
-- Clicks on buttons, links, and form controls
-- Exit events with time on site and scroll depth
-- Full per-session event timelines
+Set `ADMIN_PASSWORD` in Netlify environment variables before first use. Failed
+logins are rate-limited per IP (8 attempts / 15 min) to blunt brute-forcing.
 
-Set `ADMIN_PASSWORD` in Netlify environment variables before first use.
+> **Access model:** a single shared password today. Multi-user accounts with
+> roles (owner / view-only manager) are a planned follow-up — the token already
+> flows through `admin-auth.ts` as the extension point.
+
+### Data storage & retention
+
+All admin data lives in **Netlify Blobs** (no external database). Three stores:
+
+| Store | Holds | Retention |
+|-------|-------|-----------|
+| `alt-analytics` | Raw tracking events, one blob per day | Capped at 5 000 events/day; the dashboard reads the last 90 days |
+| `alt-leads` | Persisted leads + CRM status/notes | Kept indefinitely (no cap) — this is the customer record |
+| `alt-chats` | AI-chat transcripts, keyed per session | Kept indefinitely; may contain phone/address, so admin-token gated |
+
+Leads and chats are intentionally **not** in the analytics store, so they never
+hit the 5 000/day cap or the 90-day read window. If you later want to prune old
+transcripts, add a scheduled function that deletes `alt-chats` blobs past a TTL.
 
 Local testing with functions:
 
