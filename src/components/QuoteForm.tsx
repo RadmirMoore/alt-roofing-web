@@ -16,6 +16,7 @@ import {
   textareaClassName,
 } from "./ui";
 import { getVisitorId, trackLead } from "../lib/analytics-tracker";
+import { getAttribution } from "../lib/attribution";
 import { isValidPhone } from "../lib/validate";
 
 export function QuoteForm() {
@@ -40,6 +41,9 @@ export function QuoteForm() {
       inspectionTime: String(data.get("inspection-time") ?? "").trim(),
       source: "quote form",
       visitorId: getVisitorId(),
+      attribution: getAttribution(),
+      // Honeypot: real users never see or fill this; bots do.
+      company: String(data.get("company") ?? "").trim(),
     };
 
     if (!payload.name || !payload.phone || !payload.service) {
@@ -146,6 +150,15 @@ export function QuoteForm() {
                 className="grid grid-cols-1 gap-4 sm:grid-cols-2"
                 noValidate
               >
+                {/* Honeypot — hidden from real users, catches bots. */}
+                <input
+                  type="text"
+                  name="company"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  className="absolute left-[-9999px] h-0 w-0 opacity-0"
+                />
                 <div>
                   <label className={labelClassName} htmlFor="quote-name">
                     Name

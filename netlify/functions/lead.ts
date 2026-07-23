@@ -1,8 +1,12 @@
 import type { Config } from "@netlify/functions";
 import type { LeadPayload } from "./lib/agent";
+import { cleanAttribution } from "./lib/attribution";
 import { notifyLead } from "./lib/lead-mailer";
-import { persistLead } from "./lib/leads-store";
+import { persistLead, recentPhoneDigits } from "./lib/leads-store";
+import { evaluateSpam } from "./lib/spam";
 import { isValidPhone } from "./lib/validate";
+
+const DUP_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 type IncomingLead = {
   name?: unknown;
@@ -15,6 +19,9 @@ type IncomingLead = {
   inspectionTime?: unknown;
   source?: unknown;
   visitorId?: unknown;
+  attribution?: unknown;
+  // Hidden honeypot field — real users never see or fill it; bots do.
+  company?: unknown;
 };
 
 function json(data: unknown, status = 200) {
@@ -84,14 +91,34 @@ export default async (request: Request) => {
       zip: clean(body.zip, 20) || undefined,
       notes: notes || undefined,
       source: clean(body.source, 40) || "quote form",
+      attribution: cleanAttribution(body.attribution),
     };
 
-    await notifyLead(lead);
+    // Flag likely-spam so the operator can trust the real numbers. We still
+    // store everything (lead volume stays honest) but only email real leads.
+    let recentPhones: string[] = [];
+    try {
+      recentPhones = await recentPhoneDigits(DUP_WINDOW_MS);
+    } catch (dupError) {
+      console.error("Recent-phone lookup error:", dupError);
+    }
+    const spam = evaluateSpam(lead, {
+      honeypot: clean(body.company, 120),
+      recentPhones,
+    });
+
+    // Don't spam the inbox with junk — only notify for leads that look real.
+    if (!spam.suspected) {
+      await notifyLead(lead, { spam });
+    }
 
     // Best-effort persistence for the admin leads inbox — never let a storage
     // failure block the notification that already succeeded above.
     try {
-      await persistLead(lead, { visitorId: clean(body.visitorId, 64) || undefined });
+      await persistLead(lead, {
+        visitorId: clean(body.visitorId, 64) || undefined,
+        spam,
+      });
     } catch (persistError) {
       console.error("Lead persist error:", persistError);
     }

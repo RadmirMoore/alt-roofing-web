@@ -87,6 +87,9 @@ export function AdminLayout() {
           <NavLink to="/admin" end className={tabClass}>
             Analytics
           </NavLink>
+          <NavLink to="/admin/activity" className={tabClass}>
+            Activity
+          </NavLink>
           <NavLink to="/admin/leads" className={tabClass}>
             Leads
             {newLeads > 0 ? (

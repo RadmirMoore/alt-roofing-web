@@ -1,9 +1,11 @@
 import {
+  Compass,
   Download,
   Loader2,
   MapPin,
   PhoneCall,
   RefreshCw,
+  ShieldAlert,
   StickyNote,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -103,6 +105,15 @@ function LeadCard({
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge>{lead.service}</Badge>
             <Badge>via {lead.source}</Badge>
+            {lead.attribution?.source ? (
+              <Badge>
+                <Compass className="mr-1 inline h-3 w-3" aria-hidden="true" />
+                {lead.attribution.source}
+                {lead.attribution.utmCampaign
+                  ? ` · ${lead.attribution.utmCampaign}`
+                  : ""}
+              </Badge>
+            ) : null}
             {lead.urgency ? (
               <span
                 className={`rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -121,6 +132,18 @@ function LeadCard({
               </Badge>
             )}
           </div>
+          {lead.spam?.suspected ? (
+            <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+              <ShieldAlert
+                className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                aria-hidden="true"
+              />
+              <span>
+                <span className="font-semibold">Suspected spam:</span>{" "}
+                {lead.spam.reasons.join("; ")}
+              </span>
+            </div>
+          ) : null}
           {lead.notes ? (
             <p className="mt-3 whitespace-pre-wrap text-sm text-foreground/75">
               {lead.notes}

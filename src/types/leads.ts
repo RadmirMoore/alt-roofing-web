@@ -16,6 +16,22 @@ export type AdminNote = {
   text: string;
 };
 
+export type Attribution = {
+  source: string;
+  referrer?: string;
+  landingPath?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+};
+
+export type SpamVerdict = {
+  suspected: boolean;
+  reasons: string[];
+};
+
 export type StoredLead = {
   id: string;
   createdAt: string;
@@ -31,6 +47,8 @@ export type StoredLead = {
   source: string;
   visitorId?: string;
   estimateValue?: number;
+  attribution?: Attribution;
+  spam?: SpamVerdict;
   adminNotes: AdminNote[];
 };
 

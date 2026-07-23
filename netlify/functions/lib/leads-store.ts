@@ -1,6 +1,8 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "node:crypto";
 import type { LeadPayload } from "./agent";
+import type { Attribution } from "./attribution";
+import type { SpamVerdict } from "./spam";
 
 export const LEAD_STATUSES = [
   "new",
@@ -32,6 +34,8 @@ export type StoredLead = {
   source: string;
   visitorId?: string;
   estimateValue?: number;
+  attribution?: Attribution;
+  spam?: SpamVerdict;
   adminNotes: AdminNote[];
 };
 
@@ -60,7 +64,7 @@ export function isLeadStatus(value: unknown): value is LeadStatus {
  */
 export async function persistLead(
   lead: LeadPayload,
-  meta: { visitorId?: string } = {},
+  meta: { visitorId?: string; spam?: SpamVerdict } = {},
 ): Promise<StoredLead> {
   const store = getLeadsStore();
   const now = new Date();
@@ -80,11 +84,33 @@ export async function persistLead(
     notes: lead.notes,
     source: lead.source ?? "website",
     visitorId: meta.visitorId,
+    attribution: lead.attribution,
+    spam: meta.spam?.suspected ? meta.spam : undefined,
     adminNotes: [],
   };
 
   await store.setJSON(leadKey(now.getTime(), id), stored);
   return stored;
+}
+
+/**
+ * Last-10-digit phone strings of leads created within the recent window.
+ * Used by the spam evaluator to flag duplicate submissions.
+ */
+export async function recentPhoneDigits(windowMs: number): Promise<string[]> {
+  const store = getLeadsStore();
+  const { blobs } = await store.list({ prefix: KEY_PREFIX });
+  const cutoff = Date.now() - windowMs;
+  const recentKeys = blobs.filter((blob) => {
+    const ms = Number(blob.key.slice(KEY_PREFIX.length).split(":")[0]);
+    return Number.isFinite(ms) && ms >= cutoff;
+  });
+  const leads = await Promise.all(
+    recentKeys.map((blob) => store.get(blob.key, { type: "json" })),
+  );
+  return (leads.filter(Boolean) as StoredLead[])
+    .map((lead) => lead.phone.replace(/\D/g, "").slice(-10))
+    .filter(Boolean);
 }
 
 export async function listLeads(
@@ -178,6 +204,10 @@ export function leadsToCsv(leads: StoredLead[]): string {
     "service",
     "urgency",
     "source",
+    "traffic_source",
+    "utm_campaign",
+    "suspected_spam",
+    "spam_reasons",
     "address",
     "zip",
     "notes",
@@ -192,6 +222,10 @@ export function leadsToCsv(leads: StoredLead[]): string {
       lead.service,
       lead.urgency ?? "",
       lead.source,
+      lead.attribution?.source ?? "",
+      lead.attribution?.utmCampaign ?? "",
+      lead.spam?.suspected ? "yes" : "",
+      (lead.spam?.reasons ?? []).join(" | "),
       lead.address ?? "",
       lead.zip ?? "",
       lead.notes ?? "",

@@ -1,4 +1,5 @@
 import { getSessionId, getVisitorId } from "./analytics-tracker";
+import { getAttribution } from "./attribution";
 
 export type ChatRole = "user" | "assistant";
 
@@ -24,6 +25,7 @@ export async function sendChatMessage(
       messages,
       visitorId: getVisitorId(),
       sessionId: getSessionId(),
+      attribution: getAttribution(),
     }),
   });
 

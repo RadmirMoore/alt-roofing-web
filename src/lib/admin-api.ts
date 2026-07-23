@@ -10,6 +10,7 @@ import type {
   StoredLead,
 } from "../types/leads";
 import type { ChatsResponse, StoredChat } from "../types/chats";
+import type { ActivityResponse } from "../types/activity";
 
 const TOKEN_KEY = "alt_admin_token";
 
@@ -185,6 +186,23 @@ export async function downloadLeadsCsv(
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+export async function fetchActivity(days = 30): Promise<ActivityResponse> {
+  const response = await fetch(`/api/activity?days=${days}`, {
+    headers: authHeaders(),
+  });
+
+  const data = (await response.json()) as ActivityResponse & { error?: string };
+
+  if (response.status === 401) {
+    clearAdminToken();
+    throw new Error("Session expired. Please log in again.");
+  }
+  if (!response.ok) {
+    throw new Error(data.error ?? "Failed to load activity");
+  }
+  return data;
 }
 
 export async function fetchChats(days?: number): Promise<ChatsResponse> {

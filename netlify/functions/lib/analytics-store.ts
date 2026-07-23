@@ -17,6 +17,7 @@ import {
   HEATMAP_ROWS,
   SCROLL_BANDS,
 } from "./analytics-types";
+import { deriveSourceLabel } from "./attribution";
 
 function getAnalyticsStore() {
   return getStore({ name: "alt-analytics", consistency: "strong" });
@@ -342,6 +343,57 @@ function buildReturningVisitors(
   return returning
     .sort((a, b) => b.sessions - a.sessions)
     .slice(0, 25);
+}
+
+export type CallIntent = {
+  /** One intent per session; the session id doubles as a stable key. */
+  id: string;
+  at: string;
+  visitorId: string;
+  section?: string;
+  source: string;
+  device: string;
+  /** Number of tel: clicks in that session (repeated taps to dial). */
+  count: number;
+};
+
+/**
+ * Phone-number ("tel:") clicks, grouped into one intent per session. A website
+ * can't know WHO called from a tel: click — but it can show that someone tried,
+ * from where, and via which traffic source. This powers the free call log.
+ */
+export async function getCallIntents(days: number): Promise<CallIntent[]> {
+  const rangeDays = Math.min(Math.max(days, 1), 90);
+  const events = await loadEvents(rangeDays);
+
+  const bySession = new Map<string, AnalyticsEvent[]>();
+  for (const event of events) {
+    if (event.type !== "call") continue;
+    const list = bySession.get(event.sessionId) ?? [];
+    list.push(event);
+    bySession.set(event.sessionId, list);
+  }
+
+  const intents: CallIntent[] = [];
+  for (const [sessionId, calls] of bySession) {
+    const sorted = calls.sort(
+      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    );
+    const first = sorted[0];
+    intents.push({
+      id: sessionId,
+      at: first.timestamp,
+      visitorId: first.visitorId,
+      section: first.section,
+      source: deriveSourceLabel({ referrer: first.referrer }),
+      device: deviceLabel(first.viewport?.width ?? 0),
+      count: sorted.length,
+    });
+  }
+
+  return intents.sort(
+    (a, b) => new Date(b.at).getTime() - new Date(a.at).getTime(),
+  );
 }
 
 export function sanitizeIncomingEvent(raw: unknown): AnalyticsEvent | null {

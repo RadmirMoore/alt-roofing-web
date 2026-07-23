@@ -5,6 +5,7 @@ import {
   type ChatMessage,
   type LeadPayload,
 } from "./lib/agent";
+import { cleanAttribution } from "./lib/attribution";
 import { notifyLead } from "./lib/lead-mailer";
 import { persistLead } from "./lib/leads-store";
 import { persistChat } from "./lib/chats-store";
@@ -116,8 +117,10 @@ export default async (request: Request) => {
       messages?: ChatMessage[];
       visitorId?: string;
       sessionId?: string;
+      attribution?: unknown;
     };
     const userMessages = sanitizeMessages(body.messages ?? []);
+    const attribution = cleanAttribution(body.attribution);
     const visitorId =
       typeof body.visitorId === "string"
         ? body.visitorId.slice(0, 64)
@@ -211,7 +214,7 @@ export default async (request: Request) => {
             continue;
           }
 
-          const chatLead = { ...lead, source: "AI chat" };
+          const chatLead = { ...lead, source: "AI chat", attribution };
           await notifyLead(chatLead);
           try {
             await persistLead(chatLead, { visitorId });
