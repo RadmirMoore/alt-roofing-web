@@ -83,6 +83,7 @@ export type LeadPayload = {
   urgency?: string;
   notes?: string;
   source?: string;
+  attribution?: import("./attribution").Attribution;
 };
 
 export type ChatMessage = {

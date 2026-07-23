@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useState, type FormEvent } from "react";
 import { siteCopy } from "../data/content";
 import { FadeIn, inputClassName } from "./ui";
-import { trackLead } from "../lib/analytics-tracker";
+import { getVisitorId, trackLead } from "../lib/analytics-tracker";
 import { isValidPhone } from "../lib/validate";
 
 export function Hero() {
@@ -41,6 +41,7 @@ export function Hero() {
           zip: zip.trim(),
           service: "Free roof estimate",
           source: "hero form",
+          visitorId: getVisitorId(),
         }),
       });
 

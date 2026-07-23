@@ -1,4 +1,6 @@
 import type { LeadPayload } from "./agent";
+import { attributionSummary } from "./attribution";
+import type { SpamVerdict } from "./spam";
 
 type ResendResponse = {
   id?: string;
@@ -8,7 +10,41 @@ type ResendResponse = {
   error?: { message?: string };
 };
 
-export async function notifyLead(lead: LeadPayload): Promise<void> {
+type NotifyOptions = {
+  spam?: SpamVerdict;
+};
+
+/** Fire-and-forget Telegram notification when a bot token + chat id are set. */
+async function notifyTelegram(text: string): Promise<void> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return;
+
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${token}/sendMessage`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          disable_web_page_preview: true,
+        }),
+      },
+    );
+    if (!response.ok) {
+      console.error(`Telegram notify failed: HTTP ${response.status}`);
+    }
+  } catch (error) {
+    console.error("Telegram notify error:", error);
+  }
+}
+
+export async function notifyLead(
+  lead: LeadPayload,
+  options: NotifyOptions = {},
+): Promise<void> {
   const resendKey = process.env.RESEND_API_KEY;
   const notifyEmail =
     process.env.LEAD_NOTIFICATION_EMAIL ?? "info@altroofingsolutions.com";
@@ -16,8 +52,13 @@ export async function notifyLead(lead: LeadPayload): Promise<void> {
     process.env.LEAD_FROM_EMAIL ?? "leads@altroofingsolutions.com";
 
   const source = lead.source ?? "website";
+  const trafficSource = attributionSummary(lead.attribution);
+  const spamNote = options.spam?.suspected
+    ? `⚠ SUSPECTED SPAM: ${options.spam.reasons.join("; ")}`
+    : null;
+
   const subject = `[Website Lead · ${source}] ${lead.service} — ${lead.name}`;
-  const body = [
+  const bodyLines = [
     `New lead from ${source} on altroofingsolutions.com`,
     ``,
     `Name: ${lead.name}`,
@@ -28,10 +69,15 @@ export async function notifyLead(lead: LeadPayload): Promise<void> {
     lead.urgency ? `Urgency: ${lead.urgency}` : null,
     lead.notes ? `Notes: ${lead.notes}` : null,
     ``,
+    `Traffic source: ${trafficSource}`,
+    spamNote,
+    ``,
     `Submitted: ${new Date().toISOString()}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  ];
+  const body = bodyLines.filter((line) => line !== null).join("\n");
+
+  // Telegram (optional, non-blocking relative to email delivery).
+  await notifyTelegram(body);
 
   if (resendKey) {
     const response = await fetch("https://api.resend.com/emails", {
