@@ -8,6 +8,8 @@ import {
   quoteServiceOptions,
   siteCopy,
 } from "../data/content";
+import { consentSubmission } from "../data/consent";
+import { ConsentCheckboxes } from "./ConsentCheckboxes";
 import {
   FadeIn,
   inputClassName,
@@ -22,6 +24,8 @@ import { isValidPhone } from "../lib/validate";
 export function QuoteForm() {
   const [submitted, setSubmitted] = useState(false);
   const [scheduleInspection, setScheduleInspection] = useState(false);
+  const [smsConsent, setSmsConsent] = useState(false);
+  const [termsAck, setTermsAck] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -42,6 +46,7 @@ export function QuoteForm() {
       source: "quote form",
       visitorId: getVisitorId(),
       attribution: getAttribution(),
+      consent: consentSubmission(smsConsent, termsAck),
       // Honeypot: real users never see or fill this; bots do.
       company: String(data.get("company") ?? "").trim(),
     };
@@ -185,6 +190,15 @@ export function QuoteForm() {
                     autoComplete="tel"
                     required
                     className={`mt-2 ${inputClassName}`}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <ConsentCheckboxes
+                    idPrefix="quote"
+                    sms={smsConsent}
+                    terms={termsAck}
+                    onSmsChange={setSmsConsent}
+                    onTermsChange={setTermsAck}
                   />
                 </div>
                 <div className="sm:col-span-2">

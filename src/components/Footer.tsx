@@ -78,6 +78,13 @@ export function Footer() {
               className="underline-offset-4 transition hover:text-foreground hover:underline"
             >
               Privacy Policy
+            </a>{" "}
+            ·{" "}
+            <a
+              href="/terms"
+              className="underline-offset-4 transition hover:text-foreground hover:underline"
+            >
+              Terms
             </a>
           </p>
           <p>Licensed & Insured · Lic. #1154302 · Los Angeles, CA</p>

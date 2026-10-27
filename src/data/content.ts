@@ -86,9 +86,9 @@ export const siteCopy = {
     title: "Tell us about your roof.",
     intro:
       "Request a free roofing estimate for repair, replacement, or inspection. We respond fast — usually the same business day — with honest pricing and no pressure.",
-    successTitle: "Thanks — we'll be in touch soon.",
+    successTitle: "Thanks! We received your request.",
     successBody:
-      "A member of our roofing team will reach out shortly, usually the same day.",
+      "If you agreed to texts, you'll get a confirmation text from ALT Roofing Solutions shortly.",
   },
   footer: {
     tagline:

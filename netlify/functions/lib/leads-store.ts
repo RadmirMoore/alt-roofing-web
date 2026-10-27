@@ -2,6 +2,7 @@ import { getStore } from "@netlify/blobs";
 import { randomUUID } from "node:crypto";
 import type { LeadPayload } from "./agent";
 import type { Attribution } from "./attribution";
+import type { ConsentRecord } from "./consent";
 import type { SpamVerdict } from "./spam";
 
 export const LEAD_STATUSES = [
@@ -36,6 +37,7 @@ export type StoredLead = {
   estimateValue?: number;
   attribution?: Attribution;
   spam?: SpamVerdict;
+  consent?: ConsentRecord;
   adminNotes: AdminNote[];
 };
 
@@ -86,6 +88,7 @@ export async function persistLead(
     visitorId: meta.visitorId,
     attribution: lead.attribution,
     spam: meta.spam?.suspected ? meta.spam : undefined,
+    consent: lead.consent,
     adminNotes: [],
   };
 
@@ -212,6 +215,13 @@ export function leadsToCsv(leads: StoredLead[]): string {
     "zip",
     "notes",
     "admin_notes",
+    "sms_consent",
+    "terms_checkbox",
+    "consent_recorded_at",
+    "consent_page",
+    "consent_ip",
+    "consent_version",
+    "sms_consent_wording",
   ];
   const rows = leads.map((lead) =>
     [
@@ -230,6 +240,13 @@ export function leadsToCsv(leads: StoredLead[]): string {
       lead.zip ?? "",
       lead.notes ?? "",
       (lead.adminNotes ?? []).map((n) => n.text).join(" | "),
+      lead.consent ? (lead.consent.smsConsent ? "yes" : "no") : "",
+      lead.consent ? (lead.consent.termsAcknowledged ? "yes" : "no") : "",
+      lead.consent?.recordedAt ?? "",
+      lead.consent?.pageUrl ?? "",
+      lead.consent?.ip ?? "",
+      lead.consent?.version ?? "",
+      lead.consent?.smsConsentText ?? "",
     ]
       .map(csvCell)
       .join(","),

@@ -144,6 +144,29 @@ function LeadCard({
               </span>
             </div>
           ) : null}
+          {lead.consent ? (
+            <details className="mt-3 rounded-lg border border-border px-3 py-2 text-xs text-foreground/70">
+              <summary className="cursor-pointer">
+                <span className="font-semibold text-foreground">
+                  Texts: {lead.consent.smsConsent ? "agreed" : "not agreed"}
+                </span>
+                {" · "}Privacy &amp; Terms box:{" "}
+                {lead.consent.termsAcknowledged ? "ticked" : "not ticked"}
+              </summary>
+              <div className="mt-2 space-y-1">
+                <div>Recorded {lead.consent.recordedAtPacific}</div>
+                <div className="break-all">Page: {lead.consent.pageUrl}</div>
+                {lead.consent.ip ? <div>IP: {lead.consent.ip}</div> : null}
+                <div>
+                  Wording v{lead.consent.version}
+                  {lead.consent.matchesCurrentWording
+                    ? ""
+                    : " (differs from current)"}
+                  : &ldquo;{lead.consent.smsConsentText}&rdquo;
+                </div>
+              </div>
+            </details>
+          ) : null}
           {lead.notes ? (
             <p className="mt-3 whitespace-pre-wrap text-sm text-foreground/75">
               {lead.notes}

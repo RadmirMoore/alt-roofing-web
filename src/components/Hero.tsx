@@ -1,7 +1,9 @@
 import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { consentSubmission } from "../data/consent";
 import { siteCopy } from "../data/content";
+import { ConsentCheckboxes } from "./ConsentCheckboxes";
 import { FadeIn, inputClassName } from "./ui";
 import { getVisitorId, trackLead } from "../lib/analytics-tracker";
 import { isValidPhone } from "../lib/validate";
@@ -10,6 +12,8 @@ export function Hero() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [zip, setZip] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
+  const [termsAck, setTermsAck] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -50,6 +54,7 @@ export function Hero() {
           service: "Free roof estimate",
           source: "hero form",
           visitorId: getVisitorId(),
+          consent: consentSubmission(smsConsent, termsAck),
         }),
       });
 
@@ -213,6 +218,13 @@ export function Hero() {
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   className={inputClassName}
+                />
+                <ConsentCheckboxes
+                  idPrefix="hero"
+                  sms={smsConsent}
+                  terms={termsAck}
+                  onSmsChange={setSmsConsent}
+                  onTermsChange={setTermsAck}
                 />
                 <input
                   type="text"

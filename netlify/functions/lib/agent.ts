@@ -84,6 +84,7 @@ export type LeadPayload = {
   notes?: string;
   source?: string;
   attribution?: import("./attribution").Attribution;
+  consent?: import("./consent").ConsentRecord;
 };
 
 export type ChatMessage = {

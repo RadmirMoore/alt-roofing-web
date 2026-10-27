@@ -1,5 +1,6 @@
 import type { LeadPayload } from "./agent";
 import { attributionSummary } from "./attribution";
+import { consentSummaryLines } from "./consent";
 import type { SpamVerdict } from "./spam";
 
 type ResendResponse = {
@@ -71,6 +72,8 @@ export async function notifyLead(
     ``,
     `Traffic source: ${trafficSource}`,
     spamNote,
+    ``,
+    ...consentSummaryLines(lead.consent),
     ``,
     `Submitted: ${new Date().toISOString()}`,
   ];

@@ -1,6 +1,7 @@
-import type { Config } from "@netlify/functions";
+import type { Config, Context } from "@netlify/functions";
 import type { LeadPayload } from "./lib/agent";
 import { cleanAttribution } from "./lib/attribution";
+import { buildConsentRecord } from "./lib/consent";
 import { notifyLead } from "./lib/lead-mailer";
 import { persistLead, recentPhoneDigits } from "./lib/leads-store";
 import { evaluateSpam } from "./lib/spam";
@@ -20,6 +21,7 @@ type IncomingLead = {
   source?: unknown;
   visitorId?: unknown;
   attribution?: unknown;
+  consent?: unknown;
   // Hidden honeypot field — real users never see or fill it; bots do.
   company?: unknown;
 };
@@ -35,7 +37,7 @@ function clean(value: unknown, max = 500): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-export default async (request: Request) => {
+export default async (request: Request, context: Context) => {
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -92,6 +94,10 @@ export default async (request: Request) => {
       notes: notes || undefined,
       source: clean(body.source, 40) || "quote form",
       attribution: cleanAttribution(body.attribution),
+      consent: buildConsentRecord(body.consent, {
+        ip: context.ip,
+        userAgent: request.headers.get("user-agent") ?? undefined,
+      }),
     };
 
     // Flag likely-spam so the operator can trust the real numbers. We still

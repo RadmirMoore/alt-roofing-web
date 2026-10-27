@@ -32,6 +32,21 @@ export type SpamVerdict = {
   reasons: string[];
 };
 
+// Proof of how the visitor answered the text-message consent checkboxes.
+export type ConsentRecord = {
+  smsConsent: boolean;
+  termsAcknowledged: boolean;
+  smsConsentText: string;
+  termsAckText: string;
+  version: string;
+  matchesCurrentWording: boolean;
+  pageUrl: string;
+  recordedAt: string;
+  recordedAtPacific: string;
+  ip?: string;
+  userAgent?: string;
+};
+
 export type StoredLead = {
   id: string;
   createdAt: string;
@@ -49,6 +64,7 @@ export type StoredLead = {
   estimateValue?: number;
   attribution?: Attribution;
   spam?: SpamVerdict;
+  consent?: ConsentRecord;
   adminNotes: AdminNote[];
 };
 
