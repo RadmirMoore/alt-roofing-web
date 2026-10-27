@@ -5,13 +5,14 @@ import { buildConsentRecord } from "./lib/consent";
 import { notifyLead } from "./lib/lead-mailer";
 import { persistLead, recentPhoneDigits } from "./lib/leads-store";
 import { evaluateSpam } from "./lib/spam";
-import { isValidPhone } from "./lib/validate";
+import { isValidEmail, isValidPhone, isValidZip } from "./lib/validate";
 
 const DUP_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 type IncomingLead = {
   name?: unknown;
   phone?: unknown;
+  email?: unknown;
   service?: unknown;
   address?: unknown;
   zip?: unknown;
@@ -59,9 +60,18 @@ export default async (request: Request, context: Context) => {
     const name = clean(body.name, 120);
     const phone = clean(body.phone, 40);
     const service = clean(body.service, 120);
+    const email = clean(body.email, 200);
+    const address = clean(body.address, 200);
+    const zip = clean(body.zip, 20);
 
-    if (!name || !phone || !service) {
-      return json({ error: "Name, phone, and service are required." }, 400);
+    if (!name || !phone || !email || !address || !zip || !service) {
+      return json(
+        {
+          error:
+            "Name, phone, email, address, ZIP code, and service are required.",
+        },
+        400,
+      );
     }
 
     if (!isValidPhone(phone)) {
@@ -69,6 +79,14 @@ export default async (request: Request, context: Context) => {
         { error: "Please enter a valid phone number (10 digits with area code)." },
         400,
       );
+    }
+
+    if (!isValidEmail(email)) {
+      return json({ error: "Please enter a valid email address." }, 400);
+    }
+
+    if (!isValidZip(zip)) {
+      return json({ error: "Please enter a valid 5-digit ZIP code." }, 400);
     }
 
     const message = clean(body.message, 2000);
@@ -88,9 +106,10 @@ export default async (request: Request, context: Context) => {
     const lead: LeadPayload = {
       name,
       phone,
+      email,
       service,
-      address: clean(body.address, 200) || undefined,
-      zip: clean(body.zip, 20) || undefined,
+      address,
+      zip,
       notes: notes || undefined,
       source: clean(body.source, 40) || "quote form",
       attribution: cleanAttribution(body.attribution),

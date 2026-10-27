@@ -125,6 +125,11 @@ function LeadCard({
                 {lead.urgency}
               </span>
             ) : null}
+            {lead.email ? (
+              <a href={`mailto:${lead.email}`} className="hover:underline">
+                <Badge>{lead.email}</Badge>
+              </a>
+            ) : null}
             {(lead.address || lead.zip) && (
               <Badge>
                 <MapPin className="mr-1 inline h-3 w-3" aria-hidden="true" />

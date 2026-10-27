@@ -54,6 +54,7 @@ export type StoredLead = {
   status: LeadStatus;
   name: string;
   phone: string;
+  email?: string;
   service: string;
   address?: string;
   zip?: string;

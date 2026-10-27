@@ -25,9 +25,9 @@ export const siteCopy = {
     subtitle:
       "Licensed Los Angeles roofers serving all of Southern California — free roof estimates, transparent pricing, and same-day response for repair, replacement, and emergency work.",
     bullets: ["Licensed & Insured", "5-Star Rated", "Free Inspections"],
-    formLabel: "Free Quote · 60 seconds",
+    formLabel: "Free Quote · 2 minutes",
     formTitle: "Get your free roof estimate.",
-    formSubtitle: "Quick details — we'll call you back today.",
+    formSubtitle: "Tell us about your roof — we'll call you back today.",
     formDisclaimer: "No spam. No obligation. Just an honest quote.",
   },
   priceGuarantee: {

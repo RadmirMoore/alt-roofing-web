@@ -77,6 +77,7 @@ export const SUBMIT_LEAD_TOOL = {
 export type LeadPayload = {
   name: string;
   phone: string;
+  email?: string;
   service: string;
   address?: string;
   zip?: string;

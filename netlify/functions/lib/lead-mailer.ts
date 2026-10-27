@@ -64,6 +64,7 @@ export async function notifyLead(
     ``,
     `Name: ${lead.name}`,
     `Phone: ${lead.phone}`,
+    lead.email ? `Email: ${lead.email}` : null,
     `Service: ${lead.service}`,
     lead.address ? `Address: ${lead.address}` : null,
     lead.zip ? `ZIP: ${lead.zip}` : null,

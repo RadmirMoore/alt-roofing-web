@@ -27,6 +27,7 @@ export type StoredLead = {
   status: LeadStatus;
   name: string;
   phone: string;
+  email?: string;
   service: string;
   address?: string;
   zip?: string;
@@ -79,6 +80,7 @@ export async function persistLead(
     status: "new",
     name: lead.name,
     phone: lead.phone,
+    email: lead.email,
     service: lead.service,
     address: lead.address,
     zip: lead.zip,
@@ -204,6 +206,7 @@ export function leadsToCsv(leads: StoredLead[]): string {
     "status",
     "name",
     "phone",
+    "email",
     "service",
     "urgency",
     "source",
@@ -229,6 +232,7 @@ export function leadsToCsv(leads: StoredLead[]): string {
       lead.status,
       lead.name,
       lead.phone,
+      lead.email ?? "",
       lead.service,
       lead.urgency ?? "",
       lead.source,
