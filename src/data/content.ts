@@ -186,13 +186,6 @@ export const reviews = [
     initial: "J",
     location: "Burbank, CA · Mar 18, 2026",
   },
-  {
-    quote:
-      "Fast, reliable, and fair. Had an emergency leak during the rain and they came out same day to tarp it, then did a permanent repair that week. Great communication the entire time.",
-    name: "Carlos N.",
-    initial: "C",
-    location: "Santa Clarita, CA · Mar 2, 2026",
-  },
 ] as const;
 
 export const galleryImages = [
