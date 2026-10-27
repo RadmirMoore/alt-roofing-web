@@ -1,6 +1,6 @@
 import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, Star } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { siteCopy } from "../data/content";
 import { FadeIn, inputClassName } from "./ui";
 import { getVisitorId, trackLead } from "../lib/analytics-tracker";
@@ -13,6 +13,14 @@ export function Hero() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Visitors who ask their device for less motion get the still poster.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      videoRef.current?.pause();
+    }
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -67,18 +75,40 @@ export function Hero() {
 
   return (
     <section id="top" className="relative w-full overflow-hidden pt-28 md:pt-36">
+      <video
+        ref={videoRef}
+        aria-hidden="true"
+        className="absolute inset-0 z-0 h-full w-full object-cover"
+        poster="/images/hero-poster.jpg"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+      >
+        <source
+          src="/videos/hero-540.mp4"
+          type="video/mp4"
+          media="(max-width: 767px)"
+        />
+        <source src="/videos/hero-720.mp4" type="video/mp4" />
+      </video>
+      {/* Inline because --background is not a Tailwind theme color, so
+          from-background / via-background/45 render transparent. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-0 bg-cover bg-right bg-no-repeat"
-        style={{ backgroundImage: "url(/images/hero-bg.png)" }}
+        className="absolute inset-0 z-0"
+        style={{
+          background:
+            "linear-gradient(to right, var(--background), color-mix(in srgb, var(--background) 60%, transparent) 55%, color-mix(in srgb, var(--background) 30%, transparent))",
+        }}
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 z-0 bg-gradient-to-r from-background via-background/45 to-transparent"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 z-0 h-32 bg-gradient-to-t from-background to-transparent"
+        className="absolute inset-x-0 bottom-0 z-0 h-32"
+        style={{
+          background: "linear-gradient(to top, var(--background), transparent)",
+        }}
       />
       <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-5 pb-20 md:grid-cols-12 md:gap-12 md:px-8 md:pb-28">
         <div className="md:col-span-7">
