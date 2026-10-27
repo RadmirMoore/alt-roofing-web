@@ -228,7 +228,7 @@ export function TermsPage() {
         </P>
         <H3>Stopping messages and getting help</H3>
         <P>
-          Reply STOP to the number that sent the message to stop texts. You may
+          <strong className="font-bold text-foreground">Reply STOP</strong> to the number that sent the message to stop texts. You may
           also ask us to stop through another reasonable method, including email
           to <Email /> or a call to <Phone />. We honor valid opt-out requests
           promptly. We may send one non-promotional confirmation, then stop
@@ -237,7 +237,7 @@ export function TermsPage() {
           include the required express written consent.
         </P>
         <P>
-          Reply HELP for assistance, email <Email />, or call <Phone />. Opting
+          <strong className="font-bold text-foreground">Reply HELP</strong> for assistance, email <Email />, or call <Phone />. Opting
           out of texts does not cancel a roofing agreement or appointment.
           Contact our team separately for project or scheduling changes. We may
           use another permitted channel to communicate necessary service
