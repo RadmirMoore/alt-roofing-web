@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { AdminLayout } from "./pages/admin/AdminLayout";
 import { AnalyticsView } from "./pages/admin/AnalyticsView";
 import { ActivityView } from "./pages/admin/ActivityView";
@@ -11,6 +12,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AnalyticsView />} />
           <Route path="activity" element={<ActivityView />} />

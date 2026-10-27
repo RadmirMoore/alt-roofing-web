@@ -71,7 +71,15 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-border pt-8 text-sm text-foreground/50 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 ALT Roofing Solutions Inc. All rights reserved.</p>
+          <p>
+            © 2026 ALT Roofing Solutions Inc. All rights reserved. ·{" "}
+            <a
+              href="/privacy"
+              className="underline-offset-4 transition hover:text-foreground hover:underline"
+            >
+              Privacy Policy
+            </a>
+          </p>
           <p>Licensed & Insured · Lic. #1154302 · Los Angeles, CA</p>
         </div>
       </div>
