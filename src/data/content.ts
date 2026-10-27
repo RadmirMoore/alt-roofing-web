@@ -56,6 +56,8 @@ export const siteCopy = {
     titleLead: "What our customers",
     titleAccent: "actually",
     titleEnd: "say.",
+    videoTitle: "Hear it from a homeowner",
+    videoCaption: "Veronica R. · Full roof replacement in La Habra, CA",
   },
   gallery: {
     label: "Recent Work",

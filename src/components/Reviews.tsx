@@ -1,5 +1,6 @@
 import { Quote, Star } from "lucide-react";
 import { reviews, siteCopy } from "../data/content";
+import { TestimonialVideo } from "./TestimonialVideo";
 import { FadeIn, SectionLabel } from "./ui";
 
 export function Reviews() {
@@ -14,6 +15,8 @@ export function Reviews() {
             {siteCopy.reviews.titleEnd}
           </h2>
         </FadeIn>
+
+        <TestimonialVideo />
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           {reviews.map((review, index) => (
