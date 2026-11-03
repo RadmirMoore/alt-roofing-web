@@ -71,6 +71,7 @@ export async function notifyLead(
     lead.urgency ? `Urgency: ${lead.urgency}` : null,
     lead.notes ? `Notes: ${lead.notes}` : null,
     ``,
+    lead.crm ? `CRM: ${lead.crm}` : null,
     `Traffic source: ${trafficSource}`,
     spamNote,
     ``,

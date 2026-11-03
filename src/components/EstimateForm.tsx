@@ -1,15 +1,23 @@
-import { ArrowRight, Calendar, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { consentSubmission } from "../data/consent";
-import { quoteServiceOptions, siteCopy } from "../data/content";
+import {
+  propertyKindOptions,
+  quoteServiceOptions,
+  roofAgeOptions,
+  siteCopy,
+} from "../data/content";
 import { getVisitorId, trackLead } from "../lib/analytics-tracker";
 import { getAttribution } from "../lib/attribution";
+import { newId } from "../lib/ids";
 import { isValidEmail, isValidPhone, isValidZip } from "../lib/validate";
 import { ConsentCheckboxes } from "./ConsentCheckboxes";
+import { InspectionTimes } from "./InspectionTimes";
 import { inputClassName, labelClassName, textareaClassName } from "./ui";
 
 // The full estimate form, used at the top of the page and in the #quote
-// section. Name, phone, email, address, ZIP and service are required.
+// section. Every field except the message is required: the answers go into
+// ALT's CRM, which then offers real inspection times (InspectionTimes).
 export function EstimateForm({
   idPrefix,
   source,
@@ -22,7 +30,12 @@ export function EstimateForm({
   trackSection?: string;
 }) {
   const [submitted, setSubmitted] = useState(false);
-  const [scheduleInspection, setScheduleInspection] = useState(false);
+  // The CRM's answer when it saved the request; "bookable" offers times.
+  const [crm, setCrm] = useState<{ outcome: string; addressConfirmed: boolean } | null>(null);
+  // One ID per filled-in form, so a retry (double click, slow connection)
+  // never makes a second lead in the CRM.
+  const [requestId] = useState(newId);
+  const [propertyKind, setPropertyKind] = useState("");
   const [smsConsent, setSmsConsent] = useState(false);
   const [termsAck, setTermsAck] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -35,16 +48,23 @@ export function EstimateForm({
     if (submitting) return;
 
     const data = new FormData(event.currentTarget);
+    const field = (name: string) => String(data.get(name) ?? "").trim();
+    const owns = field("owns");
     const payload = {
-      name: String(data.get("name") ?? "").trim(),
-      phone: String(data.get("phone") ?? "").trim(),
-      email: String(data.get("email") ?? "").trim(),
-      address: String(data.get("address") ?? "").trim(),
-      zip: String(data.get("zip") ?? "").trim(),
-      service: String(data.get("service") ?? "").trim(),
-      message: String(data.get("message") ?? "").trim(),
-      inspectionDate: String(data.get("inspection-date") ?? "").trim(),
-      inspectionTime: String(data.get("inspection-time") ?? "").trim(),
+      firstName: field("first-name"),
+      lastName: field("last-name"),
+      phone: field("phone"),
+      email: field("email"),
+      street: field("street"),
+      city: field("city"),
+      zip: field("zip"),
+      service: field("service"),
+      roofAge: field("roof-age"),
+      propertyKind: field("property-kind"),
+      propertyKindOther: field("property-kind-other"),
+      ownsProperty: owns === "yes" ? true : owns === "no" ? false : null,
+      message: field("message"),
+      requestId,
       source,
       visitorId: getVisitorId(),
       attribution: getAttribution(),
@@ -54,12 +74,17 @@ export function EstimateForm({
     };
 
     const missing = [
-      !payload.name && "name",
+      !payload.firstName && "first name",
+      !payload.lastName && "last name",
       !payload.phone && "phone",
       !payload.email && "email",
-      !payload.address && "address",
+      !payload.street && "street address",
+      !payload.city && "city",
       !payload.zip && "ZIP code",
       !payload.service && "the service you need",
+      !payload.roofAge && "the roof's age",
+      !payload.propertyKind && "the type of property",
+      payload.ownsProperty === null && "whether you own the property",
     ].filter((item): item is string => Boolean(item));
     if (missing.length) {
       const list =
@@ -92,14 +117,16 @@ export function EstimateForm({
         body: JSON.stringify(payload),
       });
 
+      const body = (await response.json().catch(() => null)) as {
+        error?: string;
+        crm?: { outcome: string; addressConfirmed: boolean };
+      } | null;
       if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as
-          | { error?: string }
-          | null;
         throw new Error(body?.error ?? "Failed to submit. Please try again.");
       }
 
       trackLead(trackLabel, trackSection);
+      setCrm(body?.crm ?? null);
       setSubmitted(true);
     } catch (submitError) {
       setError(
@@ -111,6 +138,16 @@ export function EstimateForm({
       setSubmitting(false);
     }
   };
+
+  if (submitted && crm?.outcome === "bookable") {
+    return (
+      <InspectionTimes
+        addressConfirmed={crm.addressConfirmed}
+        doneTitle={siteCopy.quote.successTitle}
+        doneBody={siteCopy.quote.successBody}
+      />
+    );
+  }
 
   if (submitted) {
     return (
@@ -143,20 +180,34 @@ export function EstimateForm({
         className="absolute left-[-9999px] h-0 w-0 opacity-0"
       />
       <div>
-        <label className={labelClassName} htmlFor={id("name")}>
-          Name
+        <label className={labelClassName} htmlFor={id("first-name")}>
+          First name
         </label>
         <input
-          id={id("name")}
-          name="name"
+          id={id("first-name")}
+          name="first-name"
           type="text"
-          placeholder="Full name"
-          autoComplete="name"
+          autoComplete="given-name"
+          maxLength={80}
           required
           className={`mt-2 ${inputClassName}`}
         />
       </div>
       <div>
+        <label className={labelClassName} htmlFor={id("last-name")}>
+          Last name
+        </label>
+        <input
+          id={id("last-name")}
+          name="last-name"
+          type="text"
+          autoComplete="family-name"
+          maxLength={80}
+          required
+          className={`mt-2 ${inputClassName}`}
+        />
+      </div>
+      <div className="sm:col-span-2">
         <label className={labelClassName} htmlFor={id("phone")}>
           Phone
         </label>
@@ -194,15 +245,30 @@ export function EstimateForm({
         />
       </div>
       <div className="sm:col-span-2">
-        <label className={labelClassName} htmlFor={id("address")}>
-          Address
+        <label className={labelClassName} htmlFor={id("street")}>
+          Property street address
         </label>
         <input
-          id={id("address")}
-          name="address"
+          id={id("street")}
+          name="street"
           type="text"
-          placeholder="Street, City"
-          autoComplete="street-address"
+          placeholder="123 Main St"
+          autoComplete="address-line1"
+          maxLength={200}
+          required
+          className={`mt-2 ${inputClassName}`}
+        />
+      </div>
+      <div>
+        <label className={labelClassName} htmlFor={id("city")}>
+          City
+        </label>
+        <input
+          id={id("city")}
+          name="city"
+          type="text"
+          autoComplete="address-level2"
+          maxLength={100}
           required
           className={`mt-2 ${inputClassName}`}
         />
@@ -244,6 +310,81 @@ export function EstimateForm({
           ))}
         </select>
       </div>
+      <div>
+        <label className={labelClassName} htmlFor={id("roof-age")}>
+          How old is the roof?
+        </label>
+        <select
+          id={id("roof-age")}
+          name="roof-age"
+          required
+          defaultValue=""
+          className={`mt-2 ${inputClassName}`}
+        >
+          <option value="" disabled>
+            Select
+          </option>
+          {roofAgeOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className={labelClassName} htmlFor={id("property-kind")}>
+          Type of property
+        </label>
+        <select
+          id={id("property-kind")}
+          name="property-kind"
+          required
+          value={propertyKind}
+          onChange={(event) => setPropertyKind(event.target.value)}
+          className={`mt-2 ${inputClassName}`}
+        >
+          <option value="" disabled>
+            Select
+          </option>
+          {propertyKindOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className={labelClassName} htmlFor={id("owns")}>
+          Do you own this property?
+        </label>
+        <select
+          id={id("owns")}
+          name="owns"
+          required
+          defaultValue=""
+          className={`mt-2 ${inputClassName}`}
+        >
+          <option value="" disabled>
+            Select
+          </option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      {propertyKind === "other" ? (
+        <div className="sm:col-span-2">
+          <label className={labelClassName} htmlFor={id("property-kind-other")}>
+            What kind of property? (optional)
+          </label>
+          <input
+            id={id("property-kind-other")}
+            name="property-kind-other"
+            type="text"
+            maxLength={100}
+            className={`mt-2 ${inputClassName}`}
+          />
+        </div>
+      ) : null}
       <div className="sm:col-span-2">
         <label className={labelClassName} htmlFor={id("message")}>
           Message (optional)
@@ -255,44 +396,6 @@ export function EstimateForm({
           placeholder="Tell us a bit about your roof…"
           className={`mt-2 ${textareaClassName}`}
         />
-      </div>
-      <div className="sm:col-span-2">
-        <div className="rounded-xl border border-border bg-background/50 p-4">
-          <label className="flex cursor-pointer items-start gap-3">
-            <input
-              type="checkbox"
-              checked={scheduleInspection}
-              onChange={(event) => setScheduleInspection(event.target.checked)}
-              className="mt-1 h-4 w-4 accent-[var(--color-accent-cobalt)]"
-            />
-            <span>
-              <span className="flex items-center gap-2 font-display text-base font-semibold">
-                <Calendar className="h-4 w-4 text-primary" aria-hidden="true" />
-                Schedule a free inspection (optional)
-              </span>
-              <span className="mt-1 block text-xs text-foreground/60">
-                Pick a date and time that work for you. We&apos;ll confirm by
-                email.
-              </span>
-            </span>
-          </label>
-          {scheduleInspection ? (
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <input
-                type="date"
-                name="inspection-date"
-                aria-label="Preferred inspection date"
-                className={inputClassName}
-              />
-              <input
-                type="time"
-                name="inspection-time"
-                aria-label="Preferred inspection time"
-                className={inputClassName}
-              />
-            </div>
-          ) : null}
-        </div>
       </div>
       {error ? (
         <p className="text-sm text-primary sm:col-span-2" role="alert">

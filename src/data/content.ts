@@ -389,6 +389,25 @@ export const quoteServiceOptions = [
   "Other",
 ] as const;
 
+// The CRM's questions (same IDs as the CRM; see netlify/functions/lib/crm.ts).
+export const roofAgeOptions = [
+  { id: "under_5", label: "Under 5 years" },
+  { id: "5_9", label: "5–9 years" },
+  { id: "10_14", label: "10–14 years" },
+  { id: "15_19", label: "15–19 years" },
+  { id: "20_plus", label: "20+ years" },
+  { id: "not_sure", label: "Not sure" },
+] as const;
+
+export const propertyKindOptions = [
+  { id: "single_family", label: "Single-family home" },
+  { id: "townhouse", label: "Townhouse" },
+  { id: "duplex", label: "Duplex" },
+  { id: "multifamily", label: "Apartment building / multifamily" },
+  { id: "commercial", label: "Commercial property" },
+  { id: "other", label: "Other" },
+] as const;
+
 export const navLinks = [
   { href: "#services", label: "Services" },
   { href: "#reviews", label: "Reviews" },

@@ -86,6 +86,8 @@ export type LeadPayload = {
   source?: string;
   attribution?: import("./attribution").Attribution;
   consent?: import("./consent").ConsentRecord;
+  /** Whether the lead reached ALT's CRM (shown in the notification email). */
+  crm?: string;
 };
 
 export type ChatMessage = {
