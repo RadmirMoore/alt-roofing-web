@@ -2,13 +2,13 @@
 // in sync. Each lead stores the wording the visitor's browser actually showed,
 // plus a flag saying whether it matched this current wording.
 
-export const CONSENT_VERSION = "2026-10-26";
+export const CONSENT_VERSION = "2026-11-05";
 
 const PRIVACY_URL = "https://altroofingsolutions.com/privacy";
 const TERMS_URL = "https://altroofingsolutions.com/terms";
 const LINKS = `Privacy Policy (${PRIVACY_URL}) · Terms (${TERMS_URL})`;
 
-export const SMS_CONSENT_TEXT = `Yes, text me about my roof inspection. I agree to receive appointment confirmations, reminders, and replies about my request from ALT Roofing Solutions at the phone number above. Message frequency varies (about 4–6 messages per appointment). Msg & data rates may apply. Reply HELP for help, STOP to opt out. Consent is not a condition of any purchase. ${LINKS}`;
+export const SMS_CONSENT_TEXT = `I agree to receive text messages from ALT Roofing Solutions about my roofing request. Msg & data rates may apply. Msg frequency varies. Reply STOP to opt out, HELP for help. Consent is not required for purchase. ${LINKS}`;
 
 export const TERMS_ACK_TEXT = `I have read the Privacy Policy and Terms. ${LINKS}`;
 

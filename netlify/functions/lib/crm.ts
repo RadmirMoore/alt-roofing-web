@@ -126,6 +126,8 @@ export async function sendInquiry(
           terms_text: lead.consent.termsAckText,
           version: lead.consent.version,
           page_url: lead.consent.pageUrl,
+          // Kept by the CRM with the texting consent, as proof of who agreed.
+          ip: lead.consent.ip,
         }
       : undefined,
     attribution: {
