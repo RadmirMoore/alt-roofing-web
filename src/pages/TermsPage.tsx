@@ -221,8 +221,10 @@ export function TermsPage() {
         <H3>Frequency and charges</H3>
         <P>
           Message frequency varies with your requests, appointments, and project
-          activity and with any promotional program you select; appointment
-          messages are typically about 4–6 messages per appointment. Message and
+          activity and with any promotional program you select. A new roofing
+          request typically gets up to 5 follow-up texts over about three weeks
+          until an inspection is booked, and appointments typically get about 4–6
+          messages each. Message and
           data rates may apply. Your wireless provider determines the charges
           under your mobile plan.
         </P>
