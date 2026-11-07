@@ -1,6 +1,7 @@
 import { CalendarCheck, CheckCircle2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { newId } from "../lib/ids";
+import { revealTop } from "../lib/reveal";
 
 // After the estimate form is saved in ALT's CRM, the homeowner can pick a real
 // inspection time from the CRM's calendar (or skip and wait for a call). The
@@ -74,6 +75,12 @@ export function InspectionTimes({
   const [skipped, setSkipped] = useState(false);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+
+  // Each step (time chosen, booked, skipped) is shorter than the one before.
+  useEffect(() => {
+    revealTop(box.current);
+  }, [chosen, booked, skipped]);
 
   useEffect(() => {
     let live = true;
@@ -129,7 +136,7 @@ export function InspectionTimes({
 
   if (booked) {
     return (
-      <div className="py-8 text-center" role="status">
+      <div ref={box} className="scroll-mt-24 py-8 text-center" role="status">
         <CalendarCheck className="mx-auto h-12 w-12 text-primary" aria-hidden="true" />
         <h3 className="mt-4 font-display text-2xl font-bold">Your free inspection is booked</h3>
         <p className="mt-3 text-lg font-semibold">
@@ -145,7 +152,7 @@ export function InspectionTimes({
 
   if (skipped || (times !== null && times.length === 0)) {
     return (
-      <div className="py-8 text-center" role="status">
+      <div ref={box} className="scroll-mt-24 py-8 text-center" role="status">
         <CheckCircle2 className="mx-auto h-12 w-12 text-primary" aria-hidden="true" />
         <h3 className="mt-4 font-display text-2xl font-bold">{doneTitle}</h3>
         <p className="mt-3 text-foreground/70">
@@ -158,7 +165,7 @@ export function InspectionTimes({
   }
 
   return (
-    <div className="py-2">
+    <div ref={box} className="scroll-mt-24 py-2">
       <CheckCircle2 className="h-10 w-10 text-primary" aria-hidden="true" />
       <h3 className="mt-3 font-display text-2xl font-bold">Thanks! Now pick a time for your free inspection</h3>
       <p className="mt-2 text-sm text-foreground/70">

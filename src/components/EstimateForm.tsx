@@ -1,5 +1,5 @@
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { consentSubmission } from "../data/consent";
 import {
   propertyKindOptions,
@@ -10,6 +10,7 @@ import {
 import { getVisitorId, trackLead } from "../lib/analytics-tracker";
 import { getAttribution } from "../lib/attribution";
 import { newId } from "../lib/ids";
+import { revealTop } from "../lib/reveal";
 import { isValidEmail, isValidPhone, isValidZip } from "../lib/validate";
 import { ConsentCheckboxes } from "./ConsentCheckboxes";
 import { InspectionTimes } from "./InspectionTimes";
@@ -40,6 +41,12 @@ export function EstimateForm({
   const [termsAck, setTermsAck] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const box = useRef<HTMLDivElement>(null);
+
+  // The answer (times or thank-you) is much shorter than the form it replaces.
+  useEffect(() => {
+    if (submitted) revealTop(box.current);
+  }, [submitted]);
 
   const id = (name: string) => `${idPrefix}-${name}`;
 
@@ -141,17 +148,19 @@ export function EstimateForm({
 
   if (submitted && crm?.outcome === "bookable") {
     return (
-      <InspectionTimes
-        addressConfirmed={crm.addressConfirmed}
-        doneTitle={siteCopy.quote.successTitle}
-        doneBody={siteCopy.quote.successBody}
-      />
+      <div ref={box} className="scroll-mt-24">
+        <InspectionTimes
+          addressConfirmed={crm.addressConfirmed}
+          doneTitle={siteCopy.quote.successTitle}
+          doneBody={siteCopy.quote.successBody}
+        />
+      </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="py-8 text-center">
+      <div ref={box} className="scroll-mt-24 py-8 text-center">
         <CheckCircle2
           className="mx-auto h-12 w-12 text-primary"
           aria-hidden="true"
